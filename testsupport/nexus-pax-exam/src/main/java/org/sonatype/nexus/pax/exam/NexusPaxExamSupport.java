@@ -350,10 +350,6 @@ public abstract class NexusPaxExamSupport
         wrappedBundle(maven("org.hamcrest", "hamcrest-library").versionAsInProject()) //
             .instructions("Fragment-Host=org.ops4j.pax.tipi.hamcrest.core"),
 
-        // move work directory inside unpacked distribution
-        editConfigurationFilePut("etc/nexus.properties", //
-            "nexus-work", "${nexus-base}/sonatype-work/nexus"),
-
         // randomize ports...
         editConfigurationFilePut("etc/nexus.properties", //
             "application-port", Integer.toString(portRegistry.reservePort())),
