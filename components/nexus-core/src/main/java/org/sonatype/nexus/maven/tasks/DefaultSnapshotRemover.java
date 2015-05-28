@@ -401,63 +401,81 @@ public class DefaultSnapshotRemover
       }
       removeWholeGAV = false;
       final HashSet<Long> versionsToRemove = Sets.newHashSet();
-      // gathering the facts
+      boolean checkIfReleaseExists = request.isRemoveIfReleaseExists();
+
       for (StorageItem item : items) {
+
+        // only process artifacts
         if (!item.isVirtual() && !StorageCollectionItem.class.isAssignableFrom(item.getClass())) {
+
           final Gav gav =
               ((MavenRepository) coll.getRepositoryItemUid().getRepository()).getGavCalculator().pathToGav(
                   item.getPath());
 
           if (gav != null) {
-            // if we find a pom, check for delete on release
-            if (!gav.isHash() && !gav.isSignature() && gav.getExtension().equals("pom")) {
-              if (request.isRemoveIfReleaseExists()
-                  && releaseExistsForSnapshot(gav, item.getItemContext())) {
-                log.debug("Found POM and release exists, removing whole gav.");
-
+            // remove all snapshots if release exists
+            if (checkIfReleaseExists
+                && !gav.isHash() && !gav.isSignature() && gav.getExtension().equals("pom")) {
+              if(log.isTraceEnabled()){
+                log.trace("checking for releases", item.getPath());
+              }
+              // only check release once per _all_ timestamped GAV pom since it is expensive
+              checkIfReleaseExists = false;
+              if (releaseExistsForSnapshot(gav, item.getItemContext())) {
+                log.debug("Found POM and release exists, removing whole gav for {}", item.getPath());
                 removeWholeGAV = true;
 
-                // Will break out and junk whole gav
+                // break out and junk whole gav
                 break;
               }
             }
 
             item.getItemContext().put(Gav.class.getName(), gav);
 
-            log.debug(item.getPath());
-
-            if (gav.getSnapshotTimeStamp() != null) {
-              long itemTimestamp = gav.getSnapshotTimeStamp().longValue();
-
-              if (log.isDebugEnabled()) {
-                log.debug(
-                    "itemTimestamp={} ({}), dateThreshold={} ({})",
-                    itemTimestamp, itemTimestamp > 0 ? new Date(itemTimestamp) : "",
-                    dateThreshold, dateThreshold > 0 ? new Date(dateThreshold) : ""
-                );
+            // do not check timestamp of signature or hash files, only rely on the main storage item
+            if(gav.isSignature() || gav.isHash()) {
+              if(log.isTraceEnabled()){
+                log.trace("Skipping lastRequested for: {}", item.getPath());
+              }
+            } else {
+              if(log.isDebugEnabled()){
+                log.debug(item.getPath());
               }
 
-              // If this timestamp is already marked to be removed, junk it
-              if (versionsToRemove.contains(new Long(itemTimestamp))) {
-                addStorageFileItemToMap(deletableSnapshotsAndFiles, gav, (StorageFileItem) item);
-              }
-              else {
-                if (snapshotShouldBeRemoved(coll, item, gav, itemTimestamp)) {
-                  versionsToRemove.add(new Long(itemTimestamp));
+              if (gav.getSnapshotTimeStamp() != null) {
+                long itemTimestamp = gav.getSnapshotTimeStamp().longValue();
+
+                if (log.isDebugEnabled()) {
+                  log.debug(
+                      "itemTimestamp={} ({}), dateThreshold={} ({})",
+                      itemTimestamp, itemTimestamp > 0 ? new Date(itemTimestamp) : "",
+                      dateThreshold, dateThreshold > 0 ? new Date(dateThreshold) : ""
+                  );
+                }
+
+                // If this timestamp is already marked to be removed, junk it
+                if (versionsToRemove.contains(new Long(itemTimestamp))) {
                   addStorageFileItemToMap(deletableSnapshotsAndFiles, gav, (StorageFileItem) item);
                 }
                 else {
-                  //do not delete if dateThreshold not met
-                  addStorageFileItemToMap(remainingSnapshotsAndFiles, gav, (StorageFileItem) item);
+                  // snapshotShouldBeRemoved
+                  if (snapshotShouldBeRemoved(coll, item, gav, itemTimestamp)) {
+                    versionsToRemove.add(new Long(itemTimestamp));
+                    addStorageFileItemToMap(deletableSnapshotsAndFiles, gav, (StorageFileItem) item);
+                  }
+                  else {
+                    //do not delete if dateThreshold not met
+                    addStorageFileItemToMap(remainingSnapshotsAndFiles, gav, (StorageFileItem) item);
+                  }
                 }
               }
-            }
-            else {
-              // If no timestamp on gav, then it is a non-unique snapshot
-              // and should _not_ be removed
-              log.debug("GAV Snapshot timestamp not available, skipping non-unique snapshot");
+              else {
+                // If no timestamp on gav, then it is a non-unique snapshot
+                // and should _not_ be removed
+                log.debug("GAV Snapshot timestamp not available, skipping non-unique snapshot");
 
-              addStorageFileItemToMap(remainingSnapshotsAndFiles, gav, (StorageFileItem) item);
+                addStorageFileItemToMap(remainingSnapshotsAndFiles, gav, (StorageFileItem) item);
+              }
             }
           }
         }
@@ -582,6 +600,8 @@ public class DefaultSnapshotRemover
     /**
      * Returns the most recent requested timestamp for a specified item by looking at item itself, its pom and any
      * attached artifacts that share the same timestamp/build number.
+     * <p>
+     * Hash files and signature files are ignored.
      *
      * @since 2.7.0
      */
@@ -594,7 +614,8 @@ public class DefaultSnapshotRemover
       for (final StorageItem listedItem : items) {
         final Gav listedItemGav = repository.getGavCalculator().pathToGav(listedItem.getPath());
         // NEXUS-6230: returned GAV might be null, if file does not obey layout or is metadata
-        if (listedItemGav != null && gav.getSnapshotBuildNumber().equals(listedItemGav.getSnapshotBuildNumber())
+        if (listedItemGav != null && !listedItemGav.isHash() && !listedItemGav.isSignature()
+            && gav.getSnapshotBuildNumber().equals(listedItemGav.getSnapshotBuildNumber())
             && gav.getSnapshotTimeStamp().equals(listedItemGav.getSnapshotTimeStamp())) {
           lastRequested = Math.max(lastRequested, listedItem.getLastRequested());
         }
