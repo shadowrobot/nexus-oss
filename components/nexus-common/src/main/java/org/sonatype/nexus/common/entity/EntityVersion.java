@@ -19,7 +19,7 @@ import javax.annotation.Nonnull;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Entity version.
+ * Entity version for external usage.
  *
  * @since 3.0
  */
