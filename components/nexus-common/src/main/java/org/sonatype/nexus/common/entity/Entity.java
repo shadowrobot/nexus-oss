@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
  */
 public abstract class Entity
 {
-  private EntityMetadata metadata;
+  private volatile EntityMetadata metadata;
 
   @Nullable
   public EntityMetadata getEntityMetadata() {
