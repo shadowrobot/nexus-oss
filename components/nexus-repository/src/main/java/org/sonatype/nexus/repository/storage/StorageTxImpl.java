@@ -25,6 +25,7 @@ import org.sonatype.nexus.blobstore.api.Blob;
 import org.sonatype.nexus.blobstore.api.BlobRef;
 import org.sonatype.nexus.blobstore.api.BlobStore;
 import org.sonatype.nexus.common.collect.NestedAttributesMap;
+import org.sonatype.nexus.common.entity.EntityHelper;
 import org.sonatype.nexus.common.entity.EntityId;
 import org.sonatype.nexus.common.hash.HashAlgorithm;
 import org.sonatype.nexus.common.io.TempStreamSupplier;
@@ -333,7 +334,7 @@ public class StorageTxImpl
 
   @Override
   public void saveComponent(final Component component) {
-    if (component.isPersisted()) {
+    if (EntityHelper.hasMetadata(component)) {
       componentEntityAdapter.edit(db, component);
       hook.updateComponent(component);
     }
@@ -345,7 +346,7 @@ public class StorageTxImpl
 
   @Override
   public void saveAsset(final Asset asset) {
-    if (asset.isPersisted()) {
+    if (EntityHelper.hasMetadata(asset)) {
       assetEntityAdapter.edit(db, asset);
       hook.updateAsset(asset);
     }

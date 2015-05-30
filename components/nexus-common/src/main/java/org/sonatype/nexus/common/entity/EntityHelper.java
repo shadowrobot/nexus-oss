@@ -26,6 +26,11 @@ public class EntityHelper
 {
   private EntityHelper() {}
 
+  public static boolean hasMetadata(final Entity entity) {
+    checkNotNull(entity);
+    return entity.getEntityMetadata() != null;
+  }
+
   @Nonnull
   public static EntityMetadata metadata(final Entity entity) {
     checkNotNull(entity);

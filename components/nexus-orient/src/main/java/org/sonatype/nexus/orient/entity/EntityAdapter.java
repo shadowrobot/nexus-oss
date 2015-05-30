@@ -185,7 +185,7 @@ public abstract class EntityAdapter<T extends Entity>
     checkNotNull(entity);
 
     // new entity must not already have metadata
-    checkState(!entity.isPersisted());
+    checkState(entity.getEntityMetadata() == null);
 
     ODocument doc = db.newInstance(typeName);
     return writeEntity(doc, entity);
