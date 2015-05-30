@@ -33,11 +33,12 @@ class AttachedEntityId
 {
   private final EntityAdapter owner;
 
-  private ODocument document;
+  private final ODocument document;
 
   private String cachedValue;
 
-  public AttachedEntityId(final ODocument document, final EntityAdapter owner) {
+  public AttachedEntityId(final EntityAdapter owner, final ODocument document) {
+    // FIXME: This isn't how EntityId was meant to be used, consider how to unfuck this
     super("");
     this.owner = checkNotNull(owner);
     this.document = checkNotNull(document);

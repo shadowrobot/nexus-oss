@@ -49,7 +49,7 @@ public class AttachedEntityMetadata
   @Override
   public EntityId getId() {
     if (id == null) {
-      id = new AttachedEntityId(document, owner);
+      id = new AttachedEntityId(owner, document);
     }
     return id;
   }
