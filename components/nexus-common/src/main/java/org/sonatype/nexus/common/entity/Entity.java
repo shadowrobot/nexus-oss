@@ -14,6 +14,8 @@ package org.sonatype.nexus.common.entity;
 
 import javax.annotation.Nullable;
 
+// NOTE: Keep this class free from bloat, should only contain metadata.  Use EntityHelper or other to enrich api.
+
 /**
  * Entity.
  *
