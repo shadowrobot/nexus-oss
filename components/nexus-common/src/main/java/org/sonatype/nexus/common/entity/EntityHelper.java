@@ -14,6 +14,9 @@ package org.sonatype.nexus.common.entity;
 
 import javax.annotation.Nonnull;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
@@ -24,13 +27,21 @@ import static com.google.common.base.Preconditions.checkState;
  */
 public class EntityHelper
 {
+  private static final Logger log = LoggerFactory.getLogger(EntityHelper.class);
+
   private EntityHelper() {}
 
+  /**
+   * Check if given entity has metadata.
+   */
   public static boolean hasMetadata(final Entity entity) {
     checkNotNull(entity);
     return entity.getEntityMetadata() != null;
   }
 
+  /**
+   * Returns metadata for entity.
+   */
   @Nonnull
   public static EntityMetadata metadata(final Entity entity) {
     checkNotNull(entity);
@@ -40,6 +51,9 @@ public class EntityHelper
     return metadata;
   }
 
+  /**
+   * Returns id of entity.
+   */
   @Nonnull
   public static EntityId id(final Entity entity) {
     EntityId id = metadata(entity).getId();
@@ -49,6 +63,9 @@ public class EntityHelper
     return id;
   }
 
+  /**
+   * Returns version of entity.
+   */
   @Nonnull
   public static EntityVersion version(final Entity entity) {
     EntityVersion version = metadata(entity).getVersion();
