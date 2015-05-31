@@ -41,10 +41,6 @@ public class AttachedEntityVersion
     this.document = checkNotNull(document);
   }
 
-  public ODocument getDocument() {
-    return document;
-  }
-
   public ORecordVersion getVersion() {
     return document.getRecordVersion();
   }

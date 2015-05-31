@@ -44,10 +44,6 @@ public class AttachedEntityId
     this.document = checkNotNull(document);
   }
 
-  public ODocument getDocument() {
-    return document;
-  }
-
   public ORID getIdentity() {
     return document.getIdentity();
   }
