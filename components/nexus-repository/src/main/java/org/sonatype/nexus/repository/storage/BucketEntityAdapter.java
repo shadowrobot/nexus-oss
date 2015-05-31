@@ -69,12 +69,12 @@ public class BucketEntityAdapter
   protected void readFields(final ODocument document, final Bucket entity) {
     String repositoryName = document.field(P_REPOSITORY_NAME, OType.STRING);
 
-    entity.repositoryName(repositoryName);
+    entity.setRepositoryName(repositoryName);
   }
 
   @Override
   protected void writeFields(final ODocument document, final Bucket entity) {
-    document.field(P_REPOSITORY_NAME, entity.repositoryName());
+    document.field(P_REPOSITORY_NAME, entity.getRepositoryName());
   }
 
   @Nullable
@@ -88,5 +88,4 @@ public class BucketEntityAdapter
     }
     return readEntity(results.get(0));
   }
-
 }
