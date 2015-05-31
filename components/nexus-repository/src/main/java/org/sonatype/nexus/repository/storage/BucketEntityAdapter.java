@@ -21,6 +21,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.sonatype.nexus.orient.OClassNameBuilder;
+import org.sonatype.nexus.orient.OIndexNameBuilder;
 import org.sonatype.nexus.orient.entity.CollectionEntityAdapter;
 
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
@@ -46,7 +47,10 @@ public class BucketEntityAdapter
       .type(Bucket.class)
       .build();
 
-  private static final String I_REPOSITORY_NAME = DB_CLASS + ".repository_name_idx";
+  private static final String I_REPOSITORY_NAME = new OIndexNameBuilder()
+      .type(DB_CLASS)
+      .property(P_REPOSITORY_NAME)
+      .build();
 
   @Inject
   public BucketEntityAdapter() {
