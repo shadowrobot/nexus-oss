@@ -12,38 +12,58 @@
  */
 package org.sonatype.nexus.common.entity;
 
+import java.io.Serializable;
+
+import javax.annotation.Nonnull;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Detached {@link EntityMetadata}.
+ * Detached {@link EntityVersion}.
  *
  * @since 3.0
  */
-public class DetachedEntityMetadata
-    implements EntityMetadata
+public class DetachedEntityVersion
+  implements EntityVersion, Serializable
 {
-  private final EntityId id;
+  private static final long serialVersionUID = 1L;
 
-  private final EntityVersion version;
+  private final String value;
 
-  public DetachedEntityMetadata(final EntityId id, final EntityVersion version) {
-    this.id = checkNotNull(id);
-    this.version = checkNotNull(version);
+  public DetachedEntityVersion(final String value) {
+    this.value = checkNotNull(value);
   }
 
-  public EntityId getId() {
-    return id;
+  @Nonnull
+  public String getValue() {
+    return value;
   }
 
-  public EntityVersion getVersion() {
-    return version;
-  }
+  //@Override
+  //public boolean equals(final Object o) {
+  //  if (this == o) {
+  //    return true;
+  //  }
+  //  if (o == null || getClass() != o.getClass()) {
+  //    return false;
+  //  }
+  //
+  //  DetachedEntityVersion that = (DetachedEntityVersion) o;
+  //
+  //  if (!value.equals(that.value)) {
+  //    return false;
+  //  }
+  //
+  //  return true;
+  //}
+  //
+  //@Override
+  //public int hashCode() {
+  //  return value.hashCode();
+  //}
 
   @Override
   public String toString() {
-    return getClass().getSimpleName() + "{" +
-        "id=" + id +
-        ", version=" + version +
-        '}';
+    return value;
   }
 }

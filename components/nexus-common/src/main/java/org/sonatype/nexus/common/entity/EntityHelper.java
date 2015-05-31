@@ -14,21 +14,16 @@ package org.sonatype.nexus.common.entity;
 
 import javax.annotation.Nonnull;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 /**
- * Entity helpers.
+ * {@link Entity} helpers.
  *
  * @since 3.0
  */
 public class EntityHelper
 {
-  private static final Logger log = LoggerFactory.getLogger(EntityHelper.class);
-
   private EntityHelper() {}
 
   /**

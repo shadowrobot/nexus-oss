@@ -22,40 +22,44 @@ import com.orientechnologies.orient.core.record.impl.ODocument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
-// FIXME: Remove this overloads external ID to provide internal id semantics
-
 /**
- * An {@link EntityId} that remains connected to the underlying ODocument. This is necessary with OrientDb
- * transactions mode, as ODocument ids change when the transaction is committed.
+ * Attached {@link EntityId}.
+ *
+ * An {@link EntityId} that remains connected to the underlying ODocument.
+ * This is necessary with OrientDb transactions mode, as ODocument ids change when the transaction is committed.
+ *
+ * @since 3.0
  */
-class AttachedEntityId
-    extends EntityId
+public class AttachedEntityId
+    implements EntityId
 {
   private final EntityAdapter owner;
 
   private final ODocument document;
 
-  private String cachedValue;
+  private String value;
 
   public AttachedEntityId(final EntityAdapter owner, final ODocument document) {
-    // FIXME: This isn't how EntityId was meant to be used, consider how to unfuck this
-    super("");
     this.owner = checkNotNull(owner);
     this.document = checkNotNull(document);
+  }
+
+  public ODocument getDocument() {
+    return document;
+  }
+
+  public ORID getIdentity() {
+    return document.getIdentity();
   }
 
   @Nonnull
   @Override
   public String getValue() {
-    if (cachedValue == null) {
-      final ORID identity = document.getIdentity();
-      checkState(!identity.isTemporary(), "attempted use of temporary/uncommitted document id");
-      cachedValue = owner.getRecordIdObfuscator().encode(owner.getType(), identity);
+    if (value == null) {
+      ORID rid = document.getIdentity();
+      checkState(!rid.isTemporary(), "attempted use of temporary/uncommitted document id");
+      value = owner.getRecordIdObfuscator().encode(owner.getType(), rid);
     }
-    return cachedValue;
-  }
-
-  protected ORID recordIdentity() {
-    return document.getIdentity();
+    return value;
   }
 }

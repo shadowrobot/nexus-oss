@@ -12,31 +12,31 @@
  */
 package org.sonatype.nexus.orient.entity;
 
-import org.sonatype.nexus.common.entity.EntityId;
-import org.sonatype.nexus.common.entity.EntityMetadata;
+import javax.annotation.Nonnull;
+
 import org.sonatype.nexus.common.entity.EntityVersion;
 
 import com.orientechnologies.orient.core.record.impl.ODocument;
+import com.orientechnologies.orient.core.version.ORecordVersion;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
- * Attached {@link EntityMetadata}.
+ * Attached {@link EntityVersion}.
  *
  * @since 3.0
  */
-public class AttachedEntityMetadata
-    implements EntityMetadata
+public class AttachedEntityVersion
+  implements EntityVersion
 {
   private final EntityAdapter owner;
 
   private final ODocument document;
 
-  private EntityId id;
+  private String value;
 
-  private EntityVersion version;
-
-  public AttachedEntityMetadata(final EntityAdapter owner, final ODocument document) {
+  public AttachedEntityVersion(final EntityAdapter owner, final ODocument document) {
     this.owner = checkNotNull(owner);
     this.document = checkNotNull(document);
   }
@@ -45,27 +45,18 @@ public class AttachedEntityMetadata
     return document;
   }
 
-  @Override
-  public EntityId getId() {
-    if (id == null) {
-      id = new AttachedEntityId(owner, document);
-    }
-    return id;
+  public ORecordVersion getVersion() {
+    return document.getRecordVersion();
   }
 
+  @Nonnull
   @Override
-  public EntityVersion getVersion() {
-    if (version == null) {
-      version = new AttachedEntityVersion(owner, document);
+  public String getValue() {
+    if (value == null) {
+      ORecordVersion version = document.getRecordVersion();
+      checkState(!version.isTemporary(), "attempted use of temporary/uncommitted document id");
+      value = version.toString();
     }
-    return version;
-  }
-
-  @Override
-  public String toString() {
-    return getClass().getSimpleName() + "{" +
-        "id=" + id +
-        ", version=" + version +
-        '}';
+    return value;
   }
 }

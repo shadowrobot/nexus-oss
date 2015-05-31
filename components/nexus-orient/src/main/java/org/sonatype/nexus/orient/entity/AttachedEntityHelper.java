@@ -19,21 +19,17 @@ import org.sonatype.nexus.common.entity.EntityMetadata;
 import com.orientechnologies.orient.core.id.ORID;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 import com.orientechnologies.orient.core.version.ORecordVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 /**
- * Attached entity helpers.
+ * Attached {@link Entity} helpers.
  *
  * @since 3.0
  */
 public class AttachedEntityHelper
 {
-  private static final Logger log = LoggerFactory.getLogger(AttachedEntityHelper.class);
-
   private AttachedEntityHelper() {}
 
   /**

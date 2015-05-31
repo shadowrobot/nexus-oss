@@ -14,6 +14,7 @@ package org.sonatype.nexus.orient.entity;
 
 import javax.inject.Inject;
 
+import org.sonatype.nexus.common.entity.DetachedEntityId;
 import org.sonatype.nexus.common.entity.Entity;
 import org.sonatype.nexus.common.entity.EntityId;
 import org.sonatype.nexus.orient.RecordIdObfuscator;
@@ -213,7 +214,7 @@ public abstract class EntityAdapter<T extends Entity>
   }
 
   public EntityId encode(final ORID id) {
-    return new EntityId(getRecordIdObfuscator().encode(getType(), id));
+    return new DetachedEntityId(getRecordIdObfuscator().encode(getType(), id));
   }
 
   /**
@@ -226,7 +227,7 @@ public abstract class EntityAdapter<T extends Entity>
   public ORID recordIdentity(final EntityId id) {
     checkNotNull(id);
     if (id instanceof AttachedEntityId) {
-      return ((AttachedEntityId) id).recordIdentity();
+      return ((AttachedEntityId) id).getIdentity();
     }
     return getRecordIdObfuscator().decode(getType(), id.toString());
   }
