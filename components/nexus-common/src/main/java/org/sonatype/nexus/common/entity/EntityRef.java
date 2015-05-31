@@ -12,6 +12,8 @@
  */
 package org.sonatype.nexus.common.entity;
 
+// TODO: trying to understand if we need a reference entity container or not
+
 /**
  * {@link Entity} reference.
  *
