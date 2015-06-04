@@ -369,7 +369,7 @@ public class DefaultSnapshotRemover
         key = versionScheme.parseVersion(gav.getVersion());
       }
       catch (InvalidVersionSpecificationException e) {
-        // TODO: why is this here?
+        // TODO: why is this additional try/catch here?
         try {
           key = versionScheme.parseVersion("0.0-SNAPSHOT");
         }
@@ -484,7 +484,7 @@ public class DefaultSnapshotRemover
 
                 // always remove snapshot if the number of days for date threshold is not set
                 if (-1 == dateThreshold) {
-                  versionsToRemove.add(new Long(mavenSnapshotTimestamp));
+                  versionsToRemove.add(mavenSnapshotTimestamp);
                   addStorageFileItemToMap(toDeleteSnapshotsAndFiles, gav, (StorageFileItem) item);
                 }
                 // if this timestamped version is already marked to be removed, junk this item as well
