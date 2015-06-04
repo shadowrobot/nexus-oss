@@ -492,8 +492,7 @@ public class DefaultSnapshotRemover
                 }
                 // when requested to use last requested timestamp item attribute, cache the newest time for later check
                 else if (request.shouldUseLastRequestedTimestamp()) {
-                  // we need gather the most recent (nearest) last requested date of: the item itself, an identical
-                  // timestamped pom, or attached artifacts of the same snap time
+                  // we need gather the most recent (nearest) last requested date of items in the same build number
                   // so in this block we do not yet record an item is to be removed, simply cache for later processing
                   final Integer uniqueSnapKey = gav.getSnapshotBuildNumber();
                   final CacheEntry previouslyCached = uniqueBuildsNearestRequestTimes.get(uniqueSnapKey);
