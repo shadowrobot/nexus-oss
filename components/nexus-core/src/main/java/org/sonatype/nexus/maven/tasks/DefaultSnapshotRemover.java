@@ -369,7 +369,6 @@ public class DefaultSnapshotRemover
         key = versionScheme.parseVersion(gav.getVersion());
       }
       catch (InvalidVersionSpecificationException e) {
-        // TODO: why is this additional try/catch here?
         try {
           key = versionScheme.parseVersion("0.0-SNAPSHOT");
         }
@@ -426,8 +425,8 @@ public class DefaultSnapshotRemover
       removeWholeGAV = false;
       final HashSet<Long> versionsToRemove = Sets.newHashSet();
       boolean checkIfReleaseExists = request.isRemoveIfReleaseExists();
-      // track the newest last requested time for each unique timestamp snapshot <maven-snapshot-timestamp,item-data)
-      final Map<Long,CacheEntry> uniqueSnapshotsNearestRequestTimes = Maps.newHashMap();
+      // track the most recent last requested time for each build in the same GAV <build-number,item-data)
+      final Map<Integer,CacheEntry> uniqueSnapshotsNearestRequestTimes = Maps.newHashMap();
 
       for (StorageItem item : items) {
 
@@ -488,7 +487,7 @@ public class DefaultSnapshotRemover
                   addStorageFileItemToMap(toDeleteSnapshotsAndFiles, gav, (StorageFileItem) item);
                 }
                 // if this timestamped version is already marked to be removed, junk this item as well
-                else if (versionsToRemove.contains(new Long(mavenSnapshotTimestamp))) {
+                else if (versionsToRemove.contains(mavenSnapshotTimestamp)) {
                   addStorageFileItemToMap(toDeleteSnapshotsAndFiles, gav, (StorageFileItem) item);
                 }
                 // when requested to use last requested timestamp item attribute, cache the newest time for later check
@@ -496,7 +495,7 @@ public class DefaultSnapshotRemover
                   // we need gather the most recent (nearest) last requested date of: the item itself, an identical
                   // timestamped pom, or attached artifacts of the same snap time
                   // so in this block we do not yet record an item is to be removed, simply cache for later processing
-                  final Long uniqueSnapKey = gav.getSnapshotTimeStamp();
+                  final Integer uniqueSnapKey = gav.getSnapshotBuildNumber();
                   final CacheEntry previouslyCached = uniqueSnapshotsNearestRequestTimes.get(uniqueSnapKey);
 
                   if(previouslyCached == null){
@@ -519,8 +518,7 @@ public class DefaultSnapshotRemover
                 }
               }
               else {
-                // If no timestamp on gav, then it is a non-unique snapshot
-                // and should _not_ be removed
+                // If no timestamp on gav, then it is a non-unique snapshot and should _not_ be removed
                 log.debug("GAV Snapshot timestamp not available, skipping non-unique snapshot");
                 addStorageFileItemToMap(toRemainSnapshotsAndFiles, gav, (StorageFileItem) item);
               }
@@ -555,9 +553,8 @@ public class DefaultSnapshotRemover
 
         if(!uniqueSnapshotsNearestRequestTimes.isEmpty()){
           log.debug("processing {} cached unique timestamps by most recently requested date", uniqueSnapshotsNearestRequestTimes.size());
-          for (Map.Entry<Long,CacheEntry> entry : uniqueSnapshotsNearestRequestTimes.entrySet()){
+          for (Map.Entry<Integer,CacheEntry> entry : uniqueSnapshotsNearestRequestTimes.entrySet()){
             if(entry.getValue().mostRecentItemLastRequested < dateThreshold){
-              versionsToRemove.add(entry.getKey());
               for(StorageFileItem sfi : entry.getValue().items){
                 if(log.isTraceEnabled()){
                   log.trace("remove: {} most recent lastRequested={} ({}),dateThreshold={} ({})", sfi.getName(),
