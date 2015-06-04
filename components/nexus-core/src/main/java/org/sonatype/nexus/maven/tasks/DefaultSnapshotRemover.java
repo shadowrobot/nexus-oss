@@ -426,7 +426,7 @@ public class DefaultSnapshotRemover
       final HashSet<Long> versionsToRemove = Sets.newHashSet();
       boolean checkIfReleaseExists = request.isRemoveIfReleaseExists();
       // track the most recent last requested time for each build in the same GAV <build-number,item-data)
-      final Map<Integer,CacheEntry> uniqueSnapshotsNearestRequestTimes = Maps.newHashMap();
+      final Map<Integer,CacheEntry> uniqueBuildsNearestRequestTimes = Maps.newHashMap();
 
       for (StorageItem item : items) {
 
@@ -496,10 +496,10 @@ public class DefaultSnapshotRemover
                   // timestamped pom, or attached artifacts of the same snap time
                   // so in this block we do not yet record an item is to be removed, simply cache for later processing
                   final Integer uniqueSnapKey = gav.getSnapshotBuildNumber();
-                  final CacheEntry previouslyCached = uniqueSnapshotsNearestRequestTimes.get(uniqueSnapKey);
+                  final CacheEntry previouslyCached = uniqueBuildsNearestRequestTimes.get(uniqueSnapKey);
 
                   if(previouslyCached == null){
-                    uniqueSnapshotsNearestRequestTimes.put(uniqueSnapKey,new CacheEntry((StorageFileItem) item, gav));
+                    uniqueBuildsNearestRequestTimes.put(uniqueSnapKey, new CacheEntry((StorageFileItem) item, gav));
                   } else {
                     previouslyCached.addItem((StorageFileItem)item);
                   }
@@ -551,29 +551,29 @@ public class DefaultSnapshotRemover
       }
       else {
 
-        if(!uniqueSnapshotsNearestRequestTimes.isEmpty()){
-          log.debug("processing {} cached unique timestamps by most recently requested date", uniqueSnapshotsNearestRequestTimes.size());
-          for (Map.Entry<Integer,CacheEntry> entry : uniqueSnapshotsNearestRequestTimes.entrySet()){
-            if(entry.getValue().mostRecentItemLastRequested < dateThreshold){
-              for(StorageFileItem sfi : entry.getValue().items){
+        if(!uniqueBuildsNearestRequestTimes.isEmpty()){
+          log.debug("processing {} cached builds by most recently requested date", uniqueBuildsNearestRequestTimes.size());
+          for (CacheEntry entry : uniqueBuildsNearestRequestTimes.values()){
+            if(entry.mostRecentItemLastRequested < dateThreshold){
+              for(StorageFileItem sfi : entry.items){
                 if(log.isTraceEnabled()){
                   log.trace("remove: {} most recent lastRequested={} ({}),dateThreshold={} ({})", sfi.getName(),
-                      entry.getValue().mostRecentItemLastRequested,
-                      entry.getValue().mostRecentItemLastRequested > 0 ? new Date(entry.getValue().mostRecentItemLastRequested) : "",
+                      entry.mostRecentItemLastRequested,
+                      entry.mostRecentItemLastRequested > 0 ? new Date(entry.mostRecentItemLastRequested) : "",
                       dateThreshold, dateThreshold > 0 ? new Date(dateThreshold) : "");
                 }
-                addStorageFileItemToMap(toDeleteSnapshotsAndFiles, entry.getValue().gav, sfi);
+                addStorageFileItemToMap(toDeleteSnapshotsAndFiles, entry.gav, sfi);
               }
             }
             else {
-              for(StorageFileItem sfi : entry.getValue().items){
+              for(StorageFileItem sfi : entry.items){
                 if(log.isTraceEnabled()){
                   log.trace("retain: {} most recent lastRequested={} ({}),dateThreshold={} ({})", sfi.getName(),
-                      entry.getValue().mostRecentItemLastRequested,
-                      entry.getValue().mostRecentItemLastRequested > 0 ? new Date(entry.getValue().mostRecentItemLastRequested) : "",
+                      entry.mostRecentItemLastRequested,
+                      entry.mostRecentItemLastRequested > 0 ? new Date(entry.mostRecentItemLastRequested) : "",
                       dateThreshold, dateThreshold > 0 ? new Date(dateThreshold) : "");
                 }
-                addStorageFileItemToMap(toRemainSnapshotsAndFiles, entry.getValue().gav, sfi);
+                addStorageFileItemToMap(toRemainSnapshotsAndFiles, entry.gav, sfi);
               }
             }
           }
