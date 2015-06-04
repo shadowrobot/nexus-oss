@@ -14,7 +14,6 @@
 package org.sonatype.nexus.maven.tasks;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -285,6 +284,26 @@ public class DefaultSnapshotRemover
     }
   }
 
+  private static class CacheEntry{
+    private final List<StorageFileItem> items;
+    private Long mostRecentItemLastRequested;
+    private final Gav gav;
+
+    CacheEntry(final StorageFileItem item, final Gav gav) {
+      items = Lists.newArrayList();
+      addItem(item);
+      this.gav = checkNotNull(gav);
+    }
+
+    void addItem(StorageFileItem item){
+      this.items.add(checkNotNull(item));
+      if(mostRecentItemLastRequested == null || item.getLastRequested() > mostRecentItemLastRequested){
+        this.mostRecentItemLastRequested = item.getLastRequested();
+      }
+    }
+
+  }
+
   private class SnapshotRemoverWalkerProcessor
       extends AbstractFileDeletingWalkerProcessor
   {
@@ -295,12 +314,16 @@ public class DefaultSnapshotRemover
 
     private final SnapshotRemovalRequest request;
 
-    private final Map<Version, List<StorageFileItem>> remainingSnapshotsAndFiles = Maps.newHashMap();
+    private final Map<Version, List<StorageFileItem>> toRemainSnapshotsAndFiles = Maps.newHashMap();
 
-    private final Map<Version, List<StorageFileItem>> deletableSnapshotsAndFiles = Maps.newHashMap();
+    private final Map<Version, List<StorageFileItem>> toDeleteSnapshotsAndFiles = Maps.newHashMap();
 
     private final ParentOMatic collectionNodes;
 
+    /**
+     * Milliseconds representing the oldest date that snapshots should be retained after,
+     * if a snapshot last requested date falls after that date.
+     */
     private final long dateThreshold;
 
     private final long startTime;
@@ -346,6 +369,7 @@ public class DefaultSnapshotRemover
         key = versionScheme.parseVersion(gav.getVersion());
       }
       catch (InvalidVersionSpecificationException e) {
+        // TODO: why is this here?
         try {
           key = versionScheme.parseVersion("0.0-SNAPSHOT");
         }
@@ -364,8 +388,8 @@ public class DefaultSnapshotRemover
     @Override
     public void onCollectionEnter(WalkerContext context, StorageCollectionItem coll) {
       items.clear();
-      deletableSnapshotsAndFiles.clear();
-      remainingSnapshotsAndFiles.clear();
+      toDeleteSnapshotsAndFiles.clear();
+      toRemainSnapshotsAndFiles.clear();
       shouldProcessCollection = coll.getPath().endsWith("SNAPSHOT");
     }
 
@@ -402,6 +426,8 @@ public class DefaultSnapshotRemover
       removeWholeGAV = false;
       final HashSet<Long> versionsToRemove = Sets.newHashSet();
       boolean checkIfReleaseExists = request.isRemoveIfReleaseExists();
+      // track the newest last requested time for each unique timestamp snapshot <maven-snapshot-timestamp,item-data)
+      final Map<Long,CacheEntry> uniqueSnapshotsNearestRequestTimes = Maps.newHashMap();
 
       for (StorageItem item : items) {
 
@@ -412,6 +438,8 @@ public class DefaultSnapshotRemover
               ((MavenRepository) coll.getRepositoryItemUid().getRepository()).getGavCalculator().pathToGav(
                   item.getPath());
 
+          // if file does not obey layout, is metadata or other non-artifact, gav is null
+          // we do not want to check these hanging files for removal
           if (gav != null) {
             // remove all snapshots if release exists
             if (checkIfReleaseExists
@@ -443,38 +471,58 @@ public class DefaultSnapshotRemover
               }
 
               if (gav.getSnapshotTimeStamp() != null) {
-                long itemTimestamp = gav.getSnapshotTimeStamp().longValue();
+
+                long mavenSnapshotTimestamp = gav.getSnapshotTimeStamp().longValue();
 
                 if (log.isDebugEnabled()) {
                   log.debug(
                       "itemTimestamp={} ({}), dateThreshold={} ({})",
-                      itemTimestamp, itemTimestamp > 0 ? new Date(itemTimestamp) : "",
+                      mavenSnapshotTimestamp, mavenSnapshotTimestamp > 0 ? new Date(mavenSnapshotTimestamp) : "",
                       dateThreshold, dateThreshold > 0 ? new Date(dateThreshold) : ""
                   );
                 }
 
-                // If this timestamp is already marked to be removed, junk it
-                if (versionsToRemove.contains(new Long(itemTimestamp))) {
-                  addStorageFileItemToMap(deletableSnapshotsAndFiles, gav, (StorageFileItem) item);
+                // always remove snapshot if the number of days for date threshold is not set
+                if (-1 == dateThreshold) {
+                  versionsToRemove.add(new Long(mavenSnapshotTimestamp));
+                  addStorageFileItemToMap(toDeleteSnapshotsAndFiles, gav, (StorageFileItem) item);
+                }
+                // if this timestamped version is already marked to be removed, junk this item as well
+                else if (versionsToRemove.contains(new Long(mavenSnapshotTimestamp))) {
+                  addStorageFileItemToMap(toDeleteSnapshotsAndFiles, gav, (StorageFileItem) item);
+                }
+                // when requested to use last requested timestamp item attribute, cache the newest time for later check
+                else if (request.shouldUseLastRequestedTimestamp()) {
+                  // we need gather the most recent (nearest) last requested date of: the item itself, an identical
+                  // timestamped pom, or attached artifacts of the same snap time
+                  // so in this block we do not yet record an item is to be removed, simply cache for later processing
+                  final Long uniqueSnapKey = gav.getSnapshotTimeStamp();
+                  final CacheEntry previouslyCached = uniqueSnapshotsNearestRequestTimes.get(uniqueSnapKey);
+
+                  if(previouslyCached == null){
+                    uniqueSnapshotsNearestRequestTimes.put(uniqueSnapKey,new CacheEntry((StorageFileItem) item, gav));
+                  } else {
+                    previouslyCached.addItem((StorageFileItem)item);
+                  }
+
+                }
+                // compare maven snapshot timestamp in file name to dateThreshold
+                else if (mavenSnapshotTimestamp < dateThreshold){
+                  log.trace("maven timestamp {} earlier than threshold {}", mavenSnapshotTimestamp, dateThreshold);
+                  versionsToRemove.add(mavenSnapshotTimestamp);
+                  addStorageFileItemToMap(toDeleteSnapshotsAndFiles, gav, (StorageFileItem) item);
                 }
                 else {
-                  // snapshotShouldBeRemoved
-                  if (snapshotShouldBeRemoved(coll, item, gav, itemTimestamp)) {
-                    versionsToRemove.add(new Long(itemTimestamp));
-                    addStorageFileItemToMap(deletableSnapshotsAndFiles, gav, (StorageFileItem) item);
-                  }
-                  else {
-                    //do not delete if dateThreshold not met
-                    addStorageFileItemToMap(remainingSnapshotsAndFiles, gav, (StorageFileItem) item);
-                  }
+                  //do not delete if dateThreshold not met
+                  log.trace("retain date satisfied {}", item.getName());
+                  addStorageFileItemToMap(toRemainSnapshotsAndFiles, gav, (StorageFileItem) item);
                 }
               }
               else {
                 // If no timestamp on gav, then it is a non-unique snapshot
                 // and should _not_ be removed
                 log.debug("GAV Snapshot timestamp not available, skipping non-unique snapshot");
-
-                addStorageFileItemToMap(remainingSnapshotsAndFiles, gav, (StorageFileItem) item);
+                addStorageFileItemToMap(toRemainSnapshotsAndFiles, gav, (StorageFileItem) item);
               }
             }
           }
@@ -504,30 +552,60 @@ public class DefaultSnapshotRemover
         }
       }
       else {
+
+        if(!uniqueSnapshotsNearestRequestTimes.isEmpty()){
+          log.debug("processing {} cached unique timestamps by most recently requested date", uniqueSnapshotsNearestRequestTimes.size());
+          for (Map.Entry<Long,CacheEntry> entry : uniqueSnapshotsNearestRequestTimes.entrySet()){
+            if(entry.getValue().mostRecentItemLastRequested < dateThreshold){
+              versionsToRemove.add(entry.getKey());
+              for(StorageFileItem sfi : entry.getValue().items){
+                if(log.isTraceEnabled()){
+                  log.trace("remove: {} most recent lastRequested={} ({}),dateThreshold={} ({})", sfi.getName(),
+                      entry.getValue().mostRecentItemLastRequested,
+                      entry.getValue().mostRecentItemLastRequested > 0 ? new Date(entry.getValue().mostRecentItemLastRequested) : "",
+                      dateThreshold, dateThreshold > 0 ? new Date(dateThreshold) : "");
+                }
+                addStorageFileItemToMap(toDeleteSnapshotsAndFiles, entry.getValue().gav, sfi);
+              }
+            }
+            else {
+              for(StorageFileItem sfi : entry.getValue().items){
+                if(log.isTraceEnabled()){
+                  log.trace("retain: {} most recent lastRequested={} ({}),dateThreshold={} ({})", sfi.getName(),
+                      entry.getValue().mostRecentItemLastRequested,
+                      entry.getValue().mostRecentItemLastRequested > 0 ? new Date(entry.getValue().mostRecentItemLastRequested) : "",
+                      dateThreshold, dateThreshold > 0 ? new Date(dateThreshold) : "");
+                }
+                addStorageFileItemToMap(toRemainSnapshotsAndFiles, entry.getValue().gav, sfi);
+              }
+            }
+          }
+        }
+
         // and now check some things
-        if (remainingSnapshotsAndFiles.size() < request.getMinCountOfSnapshotsToKeep()) {
+        if (toRemainSnapshotsAndFiles.size() < request.getMinCountOfSnapshotsToKeep()) {
           // do something
-          if (remainingSnapshotsAndFiles.size() + deletableSnapshotsAndFiles.size() <
+          if (toRemainSnapshotsAndFiles.size() + toDeleteSnapshotsAndFiles.size() <
               request.getMinCountOfSnapshotsToKeep()) {
             // delete nothing, since there is less snapshots in total as allowed
-            deletableSnapshotsAndFiles.clear();
+            toDeleteSnapshotsAndFiles.clear();
           }
           else {
-            TreeSet<Version> keys = new TreeSet<Version>(deletableSnapshotsAndFiles.keySet());
+            TreeSet<Version> keys = new TreeSet<Version>(toDeleteSnapshotsAndFiles.keySet());
 
             while (!keys.isEmpty()
-                && remainingSnapshotsAndFiles.size() < request.getMinCountOfSnapshotsToKeep()) {
+                && toRemainSnapshotsAndFiles.size() < request.getMinCountOfSnapshotsToKeep()) {
               Version keyToMove = keys.last();
 
-              if (remainingSnapshotsAndFiles.containsKey(keyToMove)) {
-                remainingSnapshotsAndFiles.get(keyToMove).addAll(
-                    deletableSnapshotsAndFiles.get(keyToMove));
+              if (toRemainSnapshotsAndFiles.containsKey(keyToMove)) {
+                toRemainSnapshotsAndFiles.get(keyToMove).addAll(
+                    toDeleteSnapshotsAndFiles.get(keyToMove));
               }
               else {
-                remainingSnapshotsAndFiles.put(keyToMove, deletableSnapshotsAndFiles.get(keyToMove));
+                toRemainSnapshotsAndFiles.put(keyToMove, toDeleteSnapshotsAndFiles.get(keyToMove));
               }
 
-              deletableSnapshotsAndFiles.remove(keyToMove);
+              toDeleteSnapshotsAndFiles.remove(keyToMove);
 
               keys.remove(keyToMove);
             }
@@ -536,11 +614,11 @@ public class DefaultSnapshotRemover
         }
 
         // NEXUS-814: is this GAV have remaining artifacts?
-        boolean gavHasMoreTimestampedSnapshots = remainingSnapshotsAndFiles.size() > 0;
+        boolean gavHasMoreTimestampedSnapshots = toRemainSnapshotsAndFiles.size() > 0;
 
-        for (Version key : deletableSnapshotsAndFiles.keySet()) {
+        for (Version key : toDeleteSnapshotsAndFiles.keySet()) {
 
-          List<StorageFileItem> files = deletableSnapshotsAndFiles.get(key);
+          List<StorageFileItem> files = toDeleteSnapshotsAndFiles.get(key);
           deletedSnapshots++;
 
           for (StorageFileItem file : files) {
@@ -573,69 +651,11 @@ public class DefaultSnapshotRemover
       updateMetadataIfNecessary(context, coll);
     }
 
-    /**
-     * if dateThreshold is not used (zero days) OR
-     * if last requested is less then dateThreshold (and las requested should be used) OR
-     * if itemTimestamp is less then dateThreshold (NB: both are positive!) OR
-     *
-     * @since 2.7.0
-     */
-    private boolean snapshotShouldBeRemoved(final StorageCollectionItem coll,
-                                            final StorageItem item,
-                                            final Gav gav,
-                                            final long itemTimestamp)
-        throws Exception
-    {
-      if (-1 == dateThreshold) {
-        return true;
-      }
-
-      if (request.shouldUseLastRequestedTimestamp()) {
-        return getLastRequested(coll, item, gav) < dateThreshold;
-      }
-
-      return itemTimestamp < dateThreshold;
-    }
-
-    /**
-     * Returns the most recent requested timestamp for a specified item by looking at item itself, its pom and any
-     * attached artifacts that share the same timestamp/build number.
-     * <p>
-     * Hash files and signature files are ignored.
-     *
-     * @since 2.7.0
-     */
-    private long getLastRequested(final StorageCollectionItem coll, final StorageItem item, final Gav gav)
-        throws Exception
-    {
-      long lastRequested = item.getLastRequested();
-      final MavenRepository repository = (MavenRepository) coll.getRepositoryItemUid().getRepository();
-      final Collection<StorageItem> items = repository.list(false, coll);
-      for (final StorageItem listedItem : items) {
-        final Gav listedItemGav = repository.getGavCalculator().pathToGav(listedItem.getPath());
-        // NEXUS-6230: returned GAV might be null, if file does not obey layout or is metadata
-        if (listedItemGav != null && !listedItemGav.isHash() && !listedItemGav.isSignature()
-            && gav.getSnapshotBuildNumber().equals(listedItemGav.getSnapshotBuildNumber())
-            && gav.getSnapshotTimeStamp().equals(listedItemGav.getSnapshotTimeStamp())) {
-          lastRequested = Math.max(lastRequested, listedItem.getLastRequested());
-        }
-      }
-      if (log.isDebugEnabled()) {
-        // FIXME this debug message lacks storage item context, and could be possibly better at TRACE as well
-        log.debug(
-            "lastRequested={} ({}), dateThreshold={} ({})",
-            lastRequested, lastRequested > 0 ? new Date(lastRequested) : "",
-            dateThreshold, dateThreshold > 0 ? new Date(dateThreshold) : ""
-        );
-      }
-      return lastRequested;
-    }
-
     private void updateMetadataIfNecessary(WalkerContext context, StorageCollectionItem coll)
         throws Exception
     {
       // all snapshot files are deleted
-      if (!deletableSnapshotsAndFiles.isEmpty() && remainingSnapshotsAndFiles.isEmpty()) {
+      if (!toDeleteSnapshotsAndFiles.isEmpty() && toRemainSnapshotsAndFiles.isEmpty()) {
         collectionNodes.addAndMarkPath(PathUtils.getParentPath(coll.getPath()));
       }
       else {
