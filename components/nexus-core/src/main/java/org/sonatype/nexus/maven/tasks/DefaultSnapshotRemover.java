@@ -427,7 +427,7 @@ public class DefaultSnapshotRemover
         throws Exception
     {
       if (log.isDebugEnabled()) {
-        log.debug("onCollectionExit() :: " + coll.getRepositoryItemUid().toString());
+        log.debug("doOnCollectionExit() :: " + coll.getRepositoryItemUid().toString());
       }
       removeWholeGAV = false;
       final HashSet<Long> versionsToRemove = Sets.newHashSet();
@@ -454,17 +454,22 @@ public class DefaultSnapshotRemover
             // remove all snapshots if release exists
             if (checkIfReleaseExists
                 && !gav.isHash() && !gav.isSignature() && gav.getExtension().equals("pom")) {
-              if(log.isTraceEnabled()){
-                log.trace("checking for releases", item.getPath());
-              }
+
               // only check release once per _all_ timestamped GAV pom since it is expensive
               checkIfReleaseExists = false;
               if (releaseExistsForSnapshot(gav, item.getItemContext())) {
-                log.debug("Found POM and release exists, removing whole gav for {}", item.getPath());
+                if(log.isDebugEnabled()) {
+                  log.debug("checked {} - release found", item.getPath());
+                }
                 removeWholeGAV = true;
 
                 // break out and junk whole gav
                 break;
+              }
+              else {
+                if(log.isDebugEnabled()){
+                    log.debug("checked {} - release not found", item.getPath());
+                }
               }
             }
 
