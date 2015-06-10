@@ -444,6 +444,10 @@ public class DefaultSnapshotRemover
               ((MavenRepository) coll.getRepositoryItemUid().getRepository()).getGavCalculator().pathToGav(
                   item.getPath());
 
+          if(log.isDebugEnabled()){
+            log.debug(item.getPath());
+          }
+
           // if file does not obey layout, is metadata or other non-artifact, gav is null
           // we do not want to check these hanging files for removal
           if (gav != null) {
@@ -472,9 +476,6 @@ public class DefaultSnapshotRemover
                 log.trace("Skipping lastRequested for: {}", item.getPath());
               }
             } else {
-              if(log.isDebugEnabled()){
-                log.debug(item.getPath());
-              }
 
               if (gav.getSnapshotTimeStamp() != null) {
 
