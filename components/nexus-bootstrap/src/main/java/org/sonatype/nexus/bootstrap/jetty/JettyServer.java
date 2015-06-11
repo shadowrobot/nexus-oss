@@ -49,7 +49,7 @@ public class JettyServer
 
   private final String[] args;
 
-  private JettyMainThread thread;
+  private static JettyMainThread thread;
 
   public JettyServer(final ClassLoader classLoader, final Map<String, String> properties, final String[] args) {
     if (classLoader == null) {
@@ -204,6 +204,10 @@ public class JettyServer
     log.info("Stopped");
   }
 
+  public static Server getServer() {
+    return thread.server;
+  }
+
   /**
    * Jetty thread used to start components, wait for the server's threads to join and stop components.
    * 
@@ -223,6 +227,8 @@ public class JettyServer
 
     private volatile Exception exception;
 
+    private Server server;
+
     public JettyMainThread(final List<LifeCycle> components) {
       super("jetty-main-" + INSTANCE_COUNTER.getAndIncrement());
       this.components = components;
@@ -233,7 +239,7 @@ public class JettyServer
     @Override
     public void run() {
       try {
-        Server server = null;
+        server = null;
         try {
           for (LifeCycle component : components) {
             if (!component.isRunning()) {

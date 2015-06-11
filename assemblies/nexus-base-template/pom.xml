@@ -230,6 +230,15 @@
       <type>xml</type>
       <scope>runtime</scope>
     </dependency>
+
+    <dependency>
+      <groupId>org.sonatype.nexus.plugins</groupId>
+      <artifactId>nexus-repository-docker</artifactId>
+      <version>${nexus.version}</version>
+      <classifier>features</classifier>
+      <type>xml</type>
+      <scope>runtime</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -352,6 +361,7 @@
             <feature>nexus-repository-nuget</feature>
             <feature>nexus-repository-maven</feature>
             <feature>nexus-repository-raw</feature>
+            <feature>nexus-repository-docker</feature>
           </installedFeatures>
         </configuration>
       </plugin>
