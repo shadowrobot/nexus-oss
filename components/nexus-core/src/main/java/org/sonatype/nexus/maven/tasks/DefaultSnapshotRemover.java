@@ -459,7 +459,7 @@ public class DefaultSnapshotRemover
               checkIfReleaseExists = false;
               if (releaseExistsForSnapshot(gav, item.getItemContext())) {
                 if(log.isDebugEnabled()) {
-                  log.debug("checked {} - release found", item.getPath());
+                  log.debug("release found - checked {}", item.getPath());
                 }
                 removeWholeGAV = true;
 
@@ -468,7 +468,7 @@ public class DefaultSnapshotRemover
               }
               else {
                 if(log.isDebugEnabled()){
-                    log.debug("checked {} - release not found", item.getPath());
+                    log.debug("release not found - checked {}", item.getPath());
                 }
               }
             }
