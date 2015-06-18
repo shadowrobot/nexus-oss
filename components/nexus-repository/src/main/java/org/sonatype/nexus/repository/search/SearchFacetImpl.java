@@ -75,6 +75,18 @@ public class SearchFacetImpl
   }
 
   @Override
+  @Guarded(by = STARTED)
+  public void rebuildIndex() {
+    searchService.deleteIndex(getRepository());
+    searchService.createIndex(getRepository());
+    try (StorageTx tx = facet(StorageFacet.class).openTx()) {
+      for (Component component : tx.browseComponents(tx.getBucket())) {
+        put(component, tx.browseAssets(component));
+      }
+    }
+  }
+
+  @Override
   protected void doInit(final Configuration configuration) throws Exception {
     super.doInit(configuration);
     facet(StorageFacet.class).registerHookSupplier(searchHook);
@@ -86,24 +98,16 @@ public class SearchFacetImpl
   @Guarded(by = STARTED)
   protected void put(final EntityId componentId) {
     checkNotNull(componentId);
-    try {
-      Map<String, Object> additional = Maps.newHashMap();
-      additional.put(P_REPOSITORY_NAME, getRepository().getName());
-      Component component;
-      List<Asset> assets;
-      try (StorageTx tx = facet(StorageFacet.class).openTx()) {
-        component = tx.findComponent(componentId, tx.getBucket());
-        if (component == null) {
-          return;
-        }
-        assets = Lists.newArrayList(tx.browseAssets(component));
+    Component component;
+    List<Asset> assets;
+    try (StorageTx tx = facet(StorageFacet.class).openTx()) {
+      component = tx.findComponent(componentId, tx.getBucket());
+      if (component == null) {
+        return;
       }
-      String json = JsonUtils.merge(componentMetadata(component, assets), JsonUtils.from(additional));
-      searchService.put(getRepository(), EntityHelper.id(component).toString(), json);
+      assets = Lists.newArrayList(tx.browseAssets(component));
     }
-    catch (IOException e) {
-      throw Throwables.propagate(e);
-    }
+    put(component, assets);
   }
 
   /**
@@ -123,6 +127,18 @@ public class SearchFacetImpl
   protected void doDelete() {
     facet(StorageFacet.class).unregisterHookSupplier(searchHook);
     searchService.deleteIndex(getRepository());
+  }
+
+  private void put(final Component component, final Iterable<Asset> assets) {
+    try {
+      Map<String, Object> additional = Maps.newHashMap();
+      additional.put(P_REPOSITORY_NAME, getRepository().getName());
+      String json = JsonUtils.merge(componentMetadata(component, assets), JsonUtils.from(additional));
+      searchService.put(getRepository(), EntityHelper.id(component).toString(), json);
+    }
+    catch (IOException e) {
+      throw Throwables.propagate(e);
+    }
   }
 
   /**
