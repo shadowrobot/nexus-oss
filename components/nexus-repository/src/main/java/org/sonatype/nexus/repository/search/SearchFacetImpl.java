@@ -15,6 +15,8 @@ package org.sonatype.nexus.repository.search;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -52,11 +54,12 @@ import static org.sonatype.nexus.repository.storage.StorageFacet.P_REPOSITORY_NA
 public class SearchFacetImpl
     extends FacetSupport
     implements SearchFacet
-
 {
   private final SearchService searchService;
 
   private final Map<String, ComponentMetadataProducer> componentMetadataProducers;
+
+  private final ReadWriteLock rebuildIndexLock;
 
   private final Supplier<StorageTxHook> searchHook = new Supplier<StorageTxHook>()
   {
@@ -72,17 +75,25 @@ public class SearchFacetImpl
   {
     this.searchService = checkNotNull(searchService);
     this.componentMetadataProducers = checkNotNull(componentMetadataProducers);
+    this.rebuildIndexLock = new ReentrantReadWriteLock();
   }
 
   @Override
   @Guarded(by = STARTED)
   public void rebuildIndex() {
-    searchService.deleteIndex(getRepository());
-    searchService.createIndex(getRepository());
-    try (StorageTx tx = facet(StorageFacet.class).openTx()) {
-      for (Component component : tx.browseComponents(tx.getBucket())) {
-        put(component, tx.browseAssets(component));
+    rebuildIndexLock.writeLock().lock();
+    try {
+      searchService.deleteIndex(getRepository());
+      searchService.createIndex(getRepository());
+      // TODO: is this going to scale? Currently it returns a List...
+      try (StorageTx tx = facet(StorageFacet.class).openTx()) {
+        for (Component component : tx.browseComponents(tx.getBucket())) {
+          put(component, tx.browseAssets(component));
+        }
       }
+    }
+    finally {
+      rebuildIndexLock.writeLock().unlock();
     }
   }
 
@@ -98,16 +109,24 @@ public class SearchFacetImpl
   @Guarded(by = STARTED)
   protected void put(final EntityId componentId) {
     checkNotNull(componentId);
-    Component component;
-    List<Asset> assets;
-    try (StorageTx tx = facet(StorageFacet.class).openTx()) {
-      component = tx.findComponent(componentId, tx.getBucket());
-      if (component == null) {
-        return;
-      }
-      assets = Lists.newArrayList(tx.browseAssets(component));
+    if (!rebuildIndexLock.readLock().tryLock()) {
+      return;
     }
-    put(component, assets);
+    try {
+      Component component;
+      List<Asset> assets;
+      try (StorageTx tx = facet(StorageFacet.class).openTx()) {
+        component = tx.findComponent(componentId, tx.getBucket());
+        if (component == null) {
+          return;
+        }
+        assets = Lists.newArrayList(tx.browseAssets(component));
+      }
+      put(component, assets);
+    }
+    finally {
+      rebuildIndexLock.readLock().unlock();
+    }
   }
 
   /**
@@ -115,7 +134,16 @@ public class SearchFacetImpl
    */
   @Guarded(by = STARTED)
   protected void delete(final EntityId componentId) {
-    searchService.delete(getRepository(), componentId.toString());
+    checkNotNull(componentId);
+    if (!rebuildIndexLock.readLock().tryLock()) {
+      return;
+    }
+    try {
+      searchService.delete(getRepository(), componentId.toString());
+    }
+    finally {
+      rebuildIndexLock.readLock().unlock();
+    }
   }
 
   @Override
