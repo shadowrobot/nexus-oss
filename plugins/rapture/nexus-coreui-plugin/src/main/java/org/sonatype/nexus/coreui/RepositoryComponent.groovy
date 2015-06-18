@@ -31,6 +31,7 @@ import org.sonatype.nexus.repository.config.Configuration
 import org.sonatype.nexus.repository.group.GroupFacet
 import org.sonatype.nexus.repository.httpclient.HttpClientFacet
 import org.sonatype.nexus.repository.manager.RepositoryManager
+import org.sonatype.nexus.repository.search.SearchFacet
 import org.sonatype.nexus.repository.security.BreadActions
 import org.sonatype.nexus.repository.security.RepositoryAdminPermission
 import org.sonatype.nexus.security.SecurityHelper
@@ -129,6 +130,16 @@ extends DirectComponentSupport
     Repository repository = repositoryManager.get(name)
     securityHelper.ensurePermitted(adminPermission(repository, BreadActions.DELETE))
     repositoryManager.delete(name)
+  }
+
+  @DirectMethod
+  @RequiresAuthentication
+  @Validate
+  void rebuildIndex(final @NotEmpty String name) {
+    Repository repository = repositoryManager.get(name)
+    // TODO: for now same permission as repo remove. Do we want separate permission for "rebuild index"?
+    securityHelper.ensurePermitted(adminPermission(repository, BreadActions.DELETE))
+    repository.facet(SearchFacet).rebuildIndex()
   }
 
   RepositoryXO asRepository(Repository input) {
