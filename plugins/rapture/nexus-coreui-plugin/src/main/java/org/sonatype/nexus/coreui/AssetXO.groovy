@@ -44,11 +44,5 @@ class AssetXO
   long lastUpdated
 
   @NotEmpty
-  String sha1
-
-  @NotEmpty
-  String md5
-
-  @NotEmpty
   Map<String, Map<String, Object>> attributes
 }

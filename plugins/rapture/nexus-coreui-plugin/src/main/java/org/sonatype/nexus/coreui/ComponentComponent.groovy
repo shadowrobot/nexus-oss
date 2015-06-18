@@ -59,8 +59,6 @@ class ComponentComponent
         size: asset.size(),
         repositoryName: repositoryName,
         lastUpdated: asset.lastUpdated().millis,
-        md5: asset.attributes().checksum?.md5,
-        sha1: asset.attributes().checksum?.sha1,
         attributes: asset.attributes().backing()
     )
   }
