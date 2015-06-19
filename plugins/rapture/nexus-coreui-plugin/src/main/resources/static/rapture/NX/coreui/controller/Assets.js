@@ -74,7 +74,7 @@ Ext.define('NX.coreui.controller.Assets', {
     if (!panel) {
       panel = container.add({xtype: 'nx-coreui-component-assetinfo', weight: 10});
     }
-    panel.setAssetModel(assetModel);
+    panel.setAssetModel(assetModel, componentModel.get('format'));
   },
 
   showComponentDetails: function(container, componentModel) {

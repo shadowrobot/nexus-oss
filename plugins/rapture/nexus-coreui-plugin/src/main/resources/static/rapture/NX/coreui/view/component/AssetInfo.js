@@ -82,18 +82,21 @@ Ext.define('NX.coreui.view.component.AssetInfo', {
 
   /**
    * @public
-   * @param {object} assetModel
+   * @param {object} assetModel the asset to display 
+   * @param {String} format the format for the asset
    */
-  setAssetModel: function(assetModel) {
+  setAssetModel: function(assetModel, format) {
     var me = this, panel = me.down('#attributeGrid'), store = panel.getStore(), info = {};
     me.assetModel = assetModel;
-
+    
     // display common data
-    info[NX.I18n.get('Assets_Info_Path')] = NX.util.Url.asRepositoryLink(assetModel.get('repositoryName'),
-        assetModel.get('name'));
-    info[NX.I18n.get('Assets_Info_ContentType')] = assetModel.get('contentType');
-    info[NX.I18n.get('Assets_Info_FileSize')] = Ext.util.Format.fileSize(assetModel.get('size'));
+    var contentType = assetModel.get('contentType');
+    var size = assetModel.get('size');
+    info[NX.I18n.get('Assets_Info_Path')] = NX.util.Url.asRepositoryLink(assetModel, format);
+    info[NX.I18n.get('Assets_Info_ContentType')] = contentType;
+    info[NX.I18n.get('Assets_Info_FileSize')] = Ext.util.Format.fileSize(size);
     info[NX.I18n.get('Assets_Info_Last_Updated')] = new Date(assetModel.get('lastUpdated')) ;
+    info[NX.I18n.get('Assets_Info_Locally_Cached')] = contentType !== 'unknown' && size > 0 ;
 
     me.showInfo(info);
     

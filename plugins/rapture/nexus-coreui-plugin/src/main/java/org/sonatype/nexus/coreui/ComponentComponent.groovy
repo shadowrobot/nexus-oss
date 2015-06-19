@@ -55,8 +55,8 @@ class ComponentComponent
     new AssetXO(
         id: asset.entityMetadata.id,
         name: asset.name() ?: componentName,
-        contentType: asset.contentType(),
-        size: asset.size(),
+        contentType: asset.contentType() ?: 'unknown',
+        size: asset.size() ?: 0,
         repositoryName: repositoryName,
         lastUpdated: asset.lastUpdated().millis,
         attributes: asset.attributes().backing()
