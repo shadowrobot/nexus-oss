@@ -37,6 +37,7 @@ Ext.define('NX.coreui.view.component.AssetInfo', {
 
     var attributeGrid = Ext.create('Ext.grid.Panel', {
           title: 'Attributes',
+          ui: 'nx-subsection',
           itemId: 'attributeGrid',
           store: Ext.create('Ext.data.Store', {
             fields: ['facet', 'label', 'value'],
@@ -57,27 +58,28 @@ Ext.define('NX.coreui.view.component.AssetInfo', {
               {
                 text: 'Value',
                 flex: 2,
-                dataIndex: 'value'
+                dataIndex: 'value',
+                renderer: function(val) {
+                  return '<div style="word-wrap: break-word ;white-space:normal !important;">' + val + '</div>';
+                }
               }
             ]
           },
           hideHeaders: true,
+          overflowY: 'auto',
+          height: 500,
           features: [
             {
               ftype: 'grouping',
               groupHeaderTpl: '{name:capitalize}'
             }
-          ],
-          autoScroll: true,
-          padding: '10 10 5 10',
+          ]
         }
     );
     me.callParent(arguments);
-
-    me.add([
-      attributeGrid
-    ]);
+    
     me.setTitle(NX.I18n.get('Component_AssetInfo_Info_Title'));
+    me.addSection(attributeGrid);
   },
 
   /**
@@ -86,8 +88,11 @@ Ext.define('NX.coreui.view.component.AssetInfo', {
    * @param {String} format the format for the asset
    */
   setAssetModel: function(assetModel, format) {
-    var me = this, panel = me.down('#attributeGrid'), store = panel.getStore(), info = {};
-    me.assetModel = assetModel;
+    var me = this, 
+        panel = me.down('#attributeGrid'), 
+        store = panel.getStore(), 
+        info = {};
+    me.assetModel = assetModel
     
     // display common data
     var contentType = assetModel.get('contentType');
@@ -97,7 +102,6 @@ Ext.define('NX.coreui.view.component.AssetInfo', {
     info[NX.I18n.get('Assets_Info_FileSize')] = Ext.util.Format.fileSize(size);
     info[NX.I18n.get('Assets_Info_Last_Updated')] = new Date(assetModel.get('lastUpdated')) ;
     info[NX.I18n.get('Assets_Info_Locally_Cached')] = contentType !== 'unknown' && size > 0 ;
-
     me.showInfo(info);
     
     // update the grid attribute data
