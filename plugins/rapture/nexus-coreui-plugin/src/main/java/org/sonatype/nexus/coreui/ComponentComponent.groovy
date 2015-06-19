@@ -59,6 +59,7 @@ class ComponentComponent
         size: asset.size() ?: 0,
         repositoryName: repositoryName,
         lastUpdated: asset.lastUpdated().millis,
+        blobRef: asset.blobRef() ? asset.blobRef.toString() : '',
         attributes: asset.attributes().backing()
     )
   }

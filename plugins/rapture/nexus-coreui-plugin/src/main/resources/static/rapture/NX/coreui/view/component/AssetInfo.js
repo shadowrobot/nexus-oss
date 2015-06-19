@@ -102,6 +102,7 @@ Ext.define('NX.coreui.view.component.AssetInfo', {
     info[NX.I18n.get('Assets_Info_FileSize')] = Ext.util.Format.fileSize(size);
     info[NX.I18n.get('Assets_Info_Last_Updated')] = new Date(assetModel.get('lastUpdated')) ;
     info[NX.I18n.get('Assets_Info_Locally_Cached')] = contentType !== 'unknown' && size > 0 ;
+    info[NX.I18n.get('Assets_Info_BlobRef')] = assetModel.get('blobRef');
     me.showInfo(info);
     
     // update the grid attribute data

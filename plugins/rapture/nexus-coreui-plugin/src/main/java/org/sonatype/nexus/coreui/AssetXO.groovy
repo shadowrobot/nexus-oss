@@ -42,6 +42,9 @@ class AssetXO
 
   @NotEmpty
   long lastUpdated
+  
+  @NotEmpty
+  String blobRef
 
   @NotEmpty
   Map<String, Map<String, Object>> attributes

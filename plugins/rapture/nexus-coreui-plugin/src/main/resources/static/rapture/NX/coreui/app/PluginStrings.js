@@ -50,8 +50,7 @@ Ext.define('NX.coreui.app.PluginStrings', {
     Assets_Info_FileSize: 'File size',
     Assets_Info_Last_Updated: 'Last updated',
     Assets_Info_Locally_Cached: 'Locally cached',
-    Assets_Info_sha1: 'sha1',
-    Assets_Info_md5: 'md5',
+    Assets_Info_BlobRef: 'Blob Reference',
 
 
     Coreui_View_Browse_BrowseResultList_Name_Column: 'Name',

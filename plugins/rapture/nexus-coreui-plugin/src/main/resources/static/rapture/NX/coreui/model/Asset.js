@@ -26,6 +26,7 @@ Ext.define('NX.coreui.model.Asset', {
     {name: 'size', type: 'int'},
     {name: 'repositoryName', type: 'string', sortType: 'asUCText'},
     {name: 'lastUpdated', type: 'int'},
+    {name: 'blobRef', type: 'string', sortType: 'asUCText'},
     {name: 'attributes', type: 'auto' /*object*/}
   ]
 });
