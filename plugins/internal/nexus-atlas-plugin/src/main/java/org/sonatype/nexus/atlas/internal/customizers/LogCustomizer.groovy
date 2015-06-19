@@ -56,7 +56,7 @@ class LogCustomizer
   @Override
   void customize(final SupportBundle supportBundle) {
     // add source for nexus.log
-    supportBundle << new GeneratedContentSourceSupport(LOG, 'log/nexus.log', LOW) {
+    supportBundle << new GeneratedContentSourceSupport(LOG, System.getProperty('nexus-log') + '/nexus.log', LOW) {
       @Override
       protected void generate(final File file) {
         def log = logManager.getLogFileStream('nexus.log', 0, Long.MAX_VALUE)
@@ -85,6 +85,6 @@ class LogCustomizer
     }
 
     // include request.log
-    maybeIncludeFile new File(applicationDirectories.workDirectory, 'log/request.log'), 'log', LOW
+    maybeIncludeFile new File(applicationDirectories.workDirectory, System.getProperty('nexus-log') + '/request.log'), 'log', LOW
   }
 }
