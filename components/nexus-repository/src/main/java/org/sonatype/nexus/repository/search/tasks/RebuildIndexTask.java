@@ -12,15 +12,15 @@
  */
 package org.sonatype.nexus.repository.search.tasks;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import org.sonatype.nexus.repository.Repository;
 import org.sonatype.nexus.repository.manager.RepositoryManager;
 import org.sonatype.nexus.repository.search.SearchFacet;
-import org.sonatype.nexus.repository.storage.Asset;
-import org.sonatype.nexus.repository.storage.Component;
 import org.sonatype.nexus.scheduling.TaskSupport;
+
+import com.google.common.base.Strings;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -43,21 +43,29 @@ public class RebuildIndexTask
 
   @Override
   protected Object execute() throws Exception {
-    requireRepository().facet(SearchFacet.class).rebuildIndex();
+    final Repository repository = getRepository();
+    checkNotNull(repository);
+    repository.facet(SearchFacet.class).rebuildIndex();
     return null;
   }
 
   @Override
   public String getMessage() {
-    return "Rebuilding index of " + requireRepository();
+    final Repository repository = getRepository();
+    if (repository != null) {
+      return "Rebuilding index of " + repository;
+    }
+    else {
+      return "Rebuilding index";
+    }
   }
 
-  @Nonnull
-  private Repository requireRepository() {
+  @Nullable
+  private Repository getRepository() {
     final String repositoryName = getConfiguration().getString(REPOSITORY_NAME_FIELD_ID);
-    checkNotNull(repositoryName);
-    final Repository repository = repositoryManager.get(repositoryName);
-    checkNotNull(repository);
-    return repository;
+    if (Strings.isNullOrEmpty(repositoryName)) {
+      return null;
+    }
+    return repositoryManager.get(repositoryName);
   }
 }
