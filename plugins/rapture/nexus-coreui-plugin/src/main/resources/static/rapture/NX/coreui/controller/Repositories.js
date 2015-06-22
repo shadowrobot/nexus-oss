@@ -121,6 +121,10 @@ Ext.define('NX.coreui.controller.Repositories', {
         'nx-coreui-repository-list button[action=new]': {
           click: me.showSelectRecipePanel
         },
+        'nx-coreui-repository-feature button[action=rebuildIndex]': {
+          rebuildIndexAction: me.rebuildIndex,
+          afterrender: me.bindRebuildIndexButton
+        },
         'nx-coreui-repository-settings-form': {
           submitted: me.onSettingsSubmitted
         },
@@ -354,6 +358,45 @@ Ext.define('NX.coreui.controller.Repositories', {
    * Enable 'Delete' when user has 'delete' permission for selected repository.
    */
   bindDeleteButton: function(button) {
+    var permittedCondition;
+    button.mon(
+        NX.Conditions.and(
+            permittedCondition = NX.Conditions.isPermitted('nexus:repository-admin:*:*:delete'),
+            NX.Conditions.gridHasSelection('nx-coreui-repository-list', function(model) {
+              permittedCondition.setPermission(
+                  'nexus:repository-admin:' + model.get('format') + ':' + model.get('name') + ':delete'
+              );
+              return true;
+            })
+        ),
+        {
+          satisfied: button.enable,
+          unsatisfied: button.disable,
+          scope: button
+        }
+    );
+  },
+
+  /**
+   * @override
+   * Rebuild Repository index.
+   */
+  rebuildIndex: function(model) {
+    var me = this;
+
+    NX.direct.coreui_Repository.rebuildIndex(model.getId(), function(response) {
+      me.getStore('Repository').load();
+      if (Ext.isObject(response) && response.success) {
+        NX.Messages.add({ text: 'Repository index rebuilt: ' + me.getDescription(model), type: 'success' });
+      }
+    });
+  },
+
+  /**
+   * @private
+   * Enable 'Rebuild Index' when user has 'read' permission and task is 'runnable'.
+   */
+  bindRebuildIndexButton: function(button) {
     var permittedCondition;
     button.mon(
         NX.Conditions.and(
