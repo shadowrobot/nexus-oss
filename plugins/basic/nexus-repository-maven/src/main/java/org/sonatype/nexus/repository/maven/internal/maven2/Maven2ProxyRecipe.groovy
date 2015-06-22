@@ -38,6 +38,7 @@ import org.sonatype.nexus.repository.proxy.ProxyHandler
 import org.sonatype.nexus.repository.search.SearchFacet
 import org.sonatype.nexus.repository.security.SecurityHandler
 import org.sonatype.nexus.repository.storage.StorageFacetImpl
+import org.sonatype.nexus.repository.storage.UnitOfWorkHandler;
 import org.sonatype.nexus.repository.types.ProxyType
 import org.sonatype.nexus.repository.view.ConfigurableViewFacet
 import org.sonatype.nexus.repository.view.Route
@@ -109,6 +110,7 @@ extends MavenRecipeSupport
         .handler(partialFetchHandler)
         .handler(versionPolicyHandler)
         .handler(mavenHeadersHandler)
+        .handler(unitOfWorkHandler)
         .handler(proxyHandler)
         .create())
 
@@ -116,6 +118,7 @@ extends MavenRecipeSupport
     builder.route(newMetadataRouteBuilder()
         .handler(negativeCacheHandler)
         .handler(mavenHeadersHandler)
+        .handler(unitOfWorkHandler)
         .handler(proxyHandler)
         .create())
 

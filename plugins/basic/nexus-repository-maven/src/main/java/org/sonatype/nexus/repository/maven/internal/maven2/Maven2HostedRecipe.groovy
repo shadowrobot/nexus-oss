@@ -35,6 +35,7 @@ import org.sonatype.nexus.repository.partial.PartialFetchHandler
 import org.sonatype.nexus.repository.search.SearchFacet
 import org.sonatype.nexus.repository.security.SecurityHandler
 import org.sonatype.nexus.repository.storage.StorageFacetImpl
+import org.sonatype.nexus.repository.storage.UnitOfWorkHandler;
 import org.sonatype.nexus.repository.types.HostedType
 import org.sonatype.nexus.repository.view.ConfigurableViewFacet
 import org.sonatype.nexus.repository.view.Route
@@ -69,10 +70,6 @@ extends MavenRecipeSupport
   HostedHandler hostedHandler
 
   @Inject
-  @Named(Maven2Format.NAME)
-  MavenPathParser mavenPathParser
-
-  @Inject
   Maven2HostedRecipe(@Named(HostedType.NAME) final Type type,
                      @Named(Maven2Format.NAME) final Format format,
                      @Named(Maven2Format.NAME) MavenPathParser mavenPathParser,
@@ -98,12 +95,14 @@ extends MavenRecipeSupport
         .handler(partialFetchHandler)
         .handler(versionPolicyHandler)
         .handler(mavenHeadersHandler)
+        .handler(unitOfWorkHandler)
         .handler(hostedHandler)
         .create())
 
     // Note: partialFetchHandler NOT added for Maven metadata
     builder.route(newMetadataRouteBuilder()
         .handler(mavenHeadersHandler)
+        .handler(unitOfWorkHandler)
         .handler(hostedHandler)
         .create())
 

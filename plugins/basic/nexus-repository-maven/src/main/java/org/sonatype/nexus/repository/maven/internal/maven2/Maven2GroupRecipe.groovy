@@ -32,6 +32,7 @@ import org.sonatype.nexus.repository.maven.internal.MavenRecipeSupport
 import org.sonatype.nexus.repository.partial.PartialFetchHandler
 import org.sonatype.nexus.repository.security.SecurityHandler
 import org.sonatype.nexus.repository.storage.StorageFacetImpl
+import org.sonatype.nexus.repository.storage.UnitOfWorkHandler;
 import org.sonatype.nexus.repository.types.GroupType
 import org.sonatype.nexus.repository.view.ConfigurableViewFacet
 import org.sonatype.nexus.repository.view.Route
@@ -94,6 +95,7 @@ extends MavenRecipeSupport
     // Note: partialFetchHandler NOT added for Maven metadata
     builder.route(newMetadataRouteBuilder()
         .handler(mavenHeadersHandler)
+        .handler(unitOfWorkHandler)
         .handler(groupMetadataHandler)
         .create())
 
