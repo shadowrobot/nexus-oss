@@ -12,7 +12,7 @@
  */
 package org.sonatype.nexus.repository.search.tasks;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 
 import org.sonatype.nexus.repository.Repository;
@@ -22,6 +22,7 @@ import org.sonatype.nexus.scheduling.TaskSupport;
 
 import com.google.common.base.Strings;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -44,28 +45,21 @@ public class RebuildIndexTask
   @Override
   protected Object execute() throws Exception {
     final Repository repository = getRepository();
-    checkNotNull(repository);
     repository.facet(SearchFacet.class).rebuildIndex();
     return null;
   }
 
   @Override
   public String getMessage() {
-    final Repository repository = getRepository();
-    if (repository != null) {
-      return "Rebuilding index of " + repository;
-    }
-    else {
-      return "Rebuilding index";
-    }
+    return "Rebuilding index of " + getRepository();
   }
 
-  @Nullable
+  @Nonnull
   private Repository getRepository() {
     final String repositoryName = getConfiguration().getString(REPOSITORY_NAME_FIELD_ID);
-    if (Strings.isNullOrEmpty(repositoryName)) {
-      return null;
-    }
-    return repositoryManager.get(repositoryName);
+    checkArgument(!Strings.isNullOrEmpty(repositoryName));
+    Repository repository = repositoryManager.get(repositoryName);
+    checkNotNull(repository);
+    return repository;
   }
 }
