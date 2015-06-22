@@ -67,7 +67,6 @@ Ext.define('NX.coreui.view.component.AssetInfo', {
           },
           hideHeaders: true,
           overflowY: 'auto',
-          height: 500,
           features: [
             {
               ftype: 'grouping',
