@@ -378,11 +378,12 @@ Ext.define('NX.coreui.controller.Repositories', {
   },
 
   /**
-   * @override
-   * Rebuild Repository index.
+   * @private
+   * Rebuild Repository index for the selected Repository.
    */
-  rebuildIndex: function(model) {
-    var me = this;
+  rebuildIndex: function() {
+    var me = this,
+        model = me.getList().getSelectionModel().getLastSelected();
 
     NX.direct.coreui_Repository.rebuildIndex(model.getId(), function(response) {
       me.getStore('Repository').load();
