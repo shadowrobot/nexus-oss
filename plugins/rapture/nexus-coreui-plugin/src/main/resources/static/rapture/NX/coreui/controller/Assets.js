@@ -27,6 +27,7 @@ Ext.define('NX.coreui.controller.Assets', {
   views: [
     'component.AssetContainer',
     'component.AssetInfo',
+    'component.AssetAttributes',
     'component.AssetList',
     'component.ComponentDetails'
   ],
@@ -69,12 +70,25 @@ Ext.define('NX.coreui.controller.Assets', {
    * Shows information about selected component/asset.
    */
   showAssetInfo: function(container, componentModel, assetModel) {
-    var panel = container.down('nx-coreui-component-assetinfo');
+    var info = container.down('nx-coreui-component-assetinfo'),
+      attributes = container.down('nx-coreui-component-assetattributes');
 
-    if (!panel) {
-      panel = container.add({xtype: 'nx-coreui-component-assetinfo', weight: 10});
+    if (!info) {
+      info = container.add({xtype: 'nx-coreui-component-assetinfo', weight: 10});
     }
-    panel.setAssetModel(assetModel, componentModel.get('format'));
+    info.setAssetModel(assetModel, componentModel.get('format'));
+
+    if (!attributes) {
+      attributes = container.add({
+        xtype: 'panel',
+        ui: 'nx-inset',
+        weight: 10,
+        items: {
+          xtype: 'nx-coreui-component-assetattributes'
+        }
+      });
+    }
+    attributes.down('nx-coreui-component-assetattributes').setAssetModel(assetModel, componentModel.get('format'));
   },
 
   showComponentDetails: function(container, componentModel) {

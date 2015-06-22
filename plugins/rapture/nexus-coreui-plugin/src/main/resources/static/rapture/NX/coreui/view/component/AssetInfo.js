@@ -35,50 +35,9 @@ Ext.define('NX.coreui.view.component.AssetInfo', {
   initComponent: function() {
     var me = this;
 
-    var attributeGrid = Ext.create('Ext.grid.Panel', {
-          title: 'Attributes',
-          ui: 'nx-subsection',
-          itemId: 'attributeGrid',
-          store: Ext.create('Ext.data.Store', {
-            fields: ['facet', 'label', 'value'],
-            groupField: 'facet'
-          }),
-          columns: {
-            items: [
-              {
-                text: 'Facet',
-                hidden: true,
-                dataIndex: 'facet'
-              },
-              {
-                text: 'label',
-                flex: 1,
-                dataIndex: 'label'
-              },
-              {
-                text: 'Value',
-                flex: 2,
-                dataIndex: 'value',
-                renderer: function(val) {
-                  return '<div style="word-wrap: break-word ;white-space:normal !important;">' + val + '</div>';
-                }
-              }
-            ]
-          },
-          hideHeaders: true,
-          overflowY: 'auto',
-          features: [
-            {
-              ftype: 'grouping',
-              groupHeaderTpl: '{name:capitalize}'
-            }
-          ]
-        }
-    );
     me.callParent(arguments);
     
     me.setTitle(NX.I18n.get('Component_AssetInfo_Info_Title'));
-    me.addSection(attributeGrid);
   },
 
   /**
@@ -87,11 +46,9 @@ Ext.define('NX.coreui.view.component.AssetInfo', {
    * @param {String} format the format for the asset
    */
   setAssetModel: function(assetModel, format) {
-    var me = this, 
-        panel = me.down('#attributeGrid'), 
-        store = panel.getStore(), 
+    var me = this,
         info = {};
-    me.assetModel = assetModel
+    me.assetModel = assetModel;
     
     // display common data
     var contentType = assetModel.get('contentType');
@@ -103,15 +60,6 @@ Ext.define('NX.coreui.view.component.AssetInfo', {
     info[NX.I18n.get('Assets_Info_Locally_Cached')] = contentType !== 'unknown' && size > 0 ;
     info[NX.I18n.get('Assets_Info_BlobRef')] = assetModel.get('blobRef');
     me.showInfo(info);
-    
-    // update the grid attribute data
-    store.data.clear();
-    store.removeAll();
-    Ext.iterate(me.assetModel.get('attributes'), function(facet, facetValues) {
-      Ext.iterate(facetValues, function(key, value) {
-        store.add({facet: facet, label: key, value: value});
-      })
-    });
   }
 
 });
