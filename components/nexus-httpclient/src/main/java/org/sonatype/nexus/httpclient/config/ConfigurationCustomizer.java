@@ -33,6 +33,7 @@ import org.sonatype.sisu.goodies.common.ComponentSupport;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.net.HttpHeaders;
@@ -201,7 +202,9 @@ public class ConfigurationCustomizer
     String nonProxyPatternString = Joiner.on("|").join(Iterables.transform(patterns, GLOB_STRING_TO_REGEXP_STRING));
     Pattern nonProxyPattern = null;
     try {
-      nonProxyPattern = Pattern.compile(nonProxyPatternString, Pattern.CASE_INSENSITIVE);
+      if (!Strings.isNullOrEmpty(nonProxyPatternString)) {
+        nonProxyPattern = Pattern.compile(nonProxyPatternString, Pattern.CASE_INSENSITIVE);
+      }
     }
     catch (PatternSyntaxException e) {
       log.warn("Invalid non-proxy host regex: {}, using defaults", nonProxyPatternString, e);

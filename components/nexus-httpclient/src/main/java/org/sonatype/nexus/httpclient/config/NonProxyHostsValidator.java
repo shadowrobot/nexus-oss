@@ -50,6 +50,10 @@ public class NonProxyHostsValidator
       // must be non-empty
       return false;
     }
+    if (Strings.isNullOrEmpty(value.trim())) {
+      // must be non-empty no spaces
+      return false;
+    }
     if (value.contains("|")) {
       // must not contain | separator (used to separate multiple values in system properties)
       return false;

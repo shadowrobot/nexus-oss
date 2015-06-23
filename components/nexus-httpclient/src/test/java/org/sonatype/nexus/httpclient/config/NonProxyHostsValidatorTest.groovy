@@ -44,6 +44,7 @@ class NonProxyHostsValidatorTest
     assertThat(validator.isValid(['csétamás.hu'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
 
     assertThat(validator.isValid([''].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(false))
+    assertThat(validator.isValid(['  '].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(false))
     assertThat(validator.isValid(['foo|sonatype.org'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(false))
     assertThat(validator.isValid(['sonatype..org'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(false))
     assertThat(validator.isValid(['*..sonatype.*'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(false))

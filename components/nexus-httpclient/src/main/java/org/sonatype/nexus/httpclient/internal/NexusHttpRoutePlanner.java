@@ -79,6 +79,6 @@ public class NexusHttpRoutePlanner
    * @return true if no proxy should be configured.
    */
   private boolean noProxyFor(final String hostName) {
-    return nonProxyHostPattern == null || nonProxyHostPattern.matcher(hostName).matches();
+    return nonProxyHostPattern != null && nonProxyHostPattern.matcher(hostName).matches();
   }
 }
