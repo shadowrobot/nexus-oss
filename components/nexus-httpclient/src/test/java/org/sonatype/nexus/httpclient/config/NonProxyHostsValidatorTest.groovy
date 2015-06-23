@@ -24,7 +24,7 @@ import static org.hamcrest.Matchers.equalTo
 import static org.mockito.Mockito.mock
 
 /**
- * Tests for {@link ConfigurationCustomizer}.
+ * Tests for {@link NonProxyHostsValidator}.
  */
 class NonProxyHostsValidatorTest
     extends TestSupport
