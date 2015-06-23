@@ -12,6 +12,8 @@
  */
 package org.sonatype.nexus.httpclient.config;
 
+import java.util.regex.Pattern;
+
 import javax.validation.ConstraintValidatorContext;
 
 import org.sonatype.nexus.validation.ConstraintValidatorSupport;
@@ -26,6 +28,8 @@ import com.google.common.base.Strings;
 public class NonProxyHostsValidator
     extends ConstraintValidatorSupport<NonProxyHosts, String[]>
 {
+  private static final Pattern NON_PROXY_HOST_PATTERN = Pattern.compile("^((\\p{IsAlphabetic}|\\d|\\-|\\_|\\*)+\\.?)*$", Pattern.UNICODE_CHARACTER_CLASS);
+
   @Override
   public boolean isValid(final String[] values, final ConstraintValidatorContext context) {
     for (String value : values) {
@@ -50,8 +54,7 @@ public class NonProxyHostsValidator
       // must not contain | separator (used to separate multiple values in system properties)
       return false;
     }
-    if (value.contains("*") && !(value.startsWith("*") || value.endsWith("*"))) {
-      // if contains asterisk, it must be at beginning or end only
+    if (!NON_PROXY_HOST_PATTERN.matcher(value).matches()) {
       return false;
     }
     return true;
