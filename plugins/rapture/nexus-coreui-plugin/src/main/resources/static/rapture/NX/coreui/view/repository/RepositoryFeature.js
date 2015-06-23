@@ -34,6 +34,6 @@ Ext.define('NX.coreui.view.repository.RepositoryFeature', {
 
   actions: [
     { xtype: 'button', text: NX.I18n.get('Repository_RepositoryFeature_Delete_Button'), glyph: 'xf056@FontAwesome' /* fa-minus-circle */, action: 'delete', disabled: true },
-    { xtype: 'button', text: NX.I18n.get('Repository_RepositoryFeature_RebuildIndex_Button'), glyph: 'xf056@FontAwesome' /* fa-minus-circle */, action: 'rebuildIndex', handler: function(button) { button.fireEvent('rebuildIndexAction') }, disabled: true }
+    { xtype: 'button', text: NX.I18n.get('Repository_RepositoryFeature_RebuildIndex_Button'), glyph: 'xf056@FontAwesome' /* fa-minus-circle */, action: 'rebuildIndex', disabled: true }
   ]
 });

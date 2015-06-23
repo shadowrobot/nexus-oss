@@ -14,6 +14,7 @@ package org.sonatype.nexus.repository.search.tasks;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.sonatype.nexus.repository.Repository;
 import org.sonatype.nexus.repository.manager.RepositoryManager;
@@ -30,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  *
  * @since 3.0
  */
+@Named
 public class RebuildIndexTask
     extends TaskSupport
 {

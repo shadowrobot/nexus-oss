@@ -122,7 +122,7 @@ Ext.define('NX.coreui.controller.Repositories', {
           click: me.showSelectRecipePanel
         },
         'nx-coreui-repository-feature button[action=rebuildIndex]': {
-          rebuildIndexAction: me.rebuildIndex,
+          click: me.rebuildIndex,
           afterrender: me.bindRebuildIndexButton
         },
         'nx-coreui-repository-settings-form': {
@@ -395,12 +395,12 @@ Ext.define('NX.coreui.controller.Repositories', {
 
   /**
    * @private
-   * Enable 'Rebuild Index' when user has 'read' permission and task is 'runnable'.
+   * Enable 'Rebuild Index' when user has 'delete' permission for selected repository.
    */
   bindRebuildIndexButton: function(button) {
     var permittedCondition;
     button.mon(
-        NX.Conditions.and(
+        NX.Conditions.or(
             permittedCondition = NX.Conditions.isPermitted('nexus:repository-admin:*:*:delete'),
             NX.Conditions.gridHasSelection('nx-coreui-repository-list', function(model) {
               permittedCondition.setPermission(
