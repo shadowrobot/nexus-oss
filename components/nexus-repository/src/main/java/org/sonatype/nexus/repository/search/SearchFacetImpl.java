@@ -89,7 +89,12 @@ public class SearchFacetImpl
       // TODO: is this going to scale? Currently it returns a List...
       try (StorageTx tx = facet(StorageFacet.class).openTx()) {
         for (Component component : tx.browseComponents(tx.getBucket())) {
-          put(component, tx.browseAssets(component));
+          try {
+            put(component, tx.browseAssets(component));
+          }
+          catch (IOException e) {
+            log.warn("Could not reindex component: {}", component, e);
+          }
         }
       }
     }
@@ -125,6 +130,9 @@ public class SearchFacetImpl
       }
       put(component, assets);
     }
+    catch (IOException e) {
+      throw Throwables.propagate(e);
+    }
     finally {
       rebuildIndexLock.readLock().unlock();
     }
@@ -158,16 +166,16 @@ public class SearchFacetImpl
     searchService.deleteIndex(getRepository());
   }
 
-  private void put(final Component component, final Iterable<Asset> assets) {
-    try {
-      Map<String, Object> additional = Maps.newHashMap();
-      additional.put(P_REPOSITORY_NAME, getRepository().getName());
-      String json = JsonUtils.merge(componentMetadata(component, assets), JsonUtils.from(additional));
-      searchService.put(getRepository(), EntityHelper.id(component).toString(), json);
-    }
-    catch (IOException e) {
-      throw Throwables.propagate(e);
-    }
+  /**
+   * Extracts metadata from passed in {@link Component} and {@link Asset}s, and PUTs it into the repository's index.
+   *
+   * @throws IOException if some problem happens during metadata production.
+   */
+  private void put(final Component component, final Iterable<Asset> assets) throws IOException {
+    Map<String, Object> additional = Maps.newHashMap();
+    additional.put(P_REPOSITORY_NAME, getRepository().getName());
+    String json = JsonUtils.merge(componentMetadata(component, assets), JsonUtils.from(additional));
+    searchService.put(getRepository(), EntityHelper.id(component).toString(), json);
   }
 
   /**
