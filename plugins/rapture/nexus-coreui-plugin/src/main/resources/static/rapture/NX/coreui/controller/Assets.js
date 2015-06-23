@@ -71,7 +71,8 @@ Ext.define('NX.coreui.controller.Assets', {
    */
   showAssetInfo: function(container, componentModel, assetModel) {
     var info = container.down('nx-coreui-component-assetinfo'),
-      attributes = container.down('nx-coreui-component-assetattributes');
+      attributes = container.down('nx-coreui-component-assetattributes'),
+      panel;
 
     if (!info) {
       info = container.add({xtype: 'nx-coreui-component-assetinfo', weight: 10});
@@ -79,16 +80,16 @@ Ext.define('NX.coreui.controller.Assets', {
     info.setAssetModel(assetModel, componentModel.get('format'));
 
     if (!attributes) {
-      attributes = container.add({
-        xtype: 'panel',
+
+      attributes = Ext.create('widget.nx-coreui-component-assetattributes');
+      panel = Ext.create('Ext.Panel', {
         ui: 'nx-inset',
-        weight: 10,
-        items: {
-          xtype: 'nx-coreui-component-assetattributes'
-        }
+        weight: 10
       });
+      panel.add(attributes);
+      container.add(panel);
     }
-    attributes.down('nx-coreui-component-assetattributes').setAssetModel(assetModel, componentModel.get('format'));
+    attributes.setAssetModel(assetModel, componentModel.get('format'));
   },
 
   showComponentDetails: function(container, componentModel) {
