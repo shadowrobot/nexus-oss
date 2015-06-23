@@ -61,28 +61,16 @@ class ConfigurationCustomizerTest
 
     HttpHost localhost = new HttpHost('localhost', 80)
     route = planner.determineRoute(localhost, mock(HttpRequest), mock(HttpContext))
-    assertThat(route.getHopTarget(0), equalTo(localhost))
-  }
-
-  @Test
-  void 'default nonProxyHosts'() {
-    NexusHttpRoutePlanner planner = create(null)
-    HttpRoute route
-
-    for (String host : ['localhost', '127.0.0.1', '[::1]', '0.0.0.0', '[::0]']) {
-      HttpHost target = new HttpHost(host, 80, HTTP)
-      route = planner.determineRoute(target, mock(HttpRequest), mock(HttpContext))
-      assertThat(route.getHopTarget(0), equalTo(target))
-    }
+    assertThat(route.getHopTarget(0), equalTo(httpProxyHost))
   }
 
   @Test
   void 'custom nonProxyHosts'() {
-    NexusHttpRoutePlanner planner = create(['*.sonatype.*', '*.example.com'] as String[])
+    NexusHttpRoutePlanner planner = create(['*.sonatype.*', '*.example.com', 'localhost'] as String[])
     HttpRoute route
 
     // must not have proxy used
-    for (String host : ['www.sonatype.org', 'www.sonatype.com', 'smtp.example.com', 'localhost', '127.0.0.1', '[::1]', '0.0.0.0', '[::0]']) {
+    for (String host : ['www.sonatype.org', 'www.sonatype.com', 'smtp.example.com', 'localhost']) {
       HttpHost target = new HttpHost(host, 80)
       route = planner.determineRoute(target, mock(HttpRequest), mock(HttpContext))
       assertThat(route.getHopTarget(0), equalTo(target))
