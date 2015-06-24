@@ -16,9 +16,8 @@ import java.util.regex.Pattern;
 
 import javax.validation.ConstraintValidatorContext;
 
+import org.sonatype.nexus.common.text.Strings2;
 import org.sonatype.nexus.validation.ConstraintValidatorSupport;
-
-import com.google.common.base.Strings;
 
 /**
  * {@link NonProxyHosts} validator.
@@ -46,12 +45,8 @@ public class NonProxyHostsValidator
    */
   private boolean isValid(final String value) {
     // A value should be a non-empty string optionally prefixed or suffixed with an asterisk
-    if (Strings.isNullOrEmpty(value)) {
-      // must be non-empty
-      return false;
-    }
-    if (Strings.isNullOrEmpty(value.trim())) {
-      // must be non-empty no spaces
+    if (Strings2.isBlank(value)) {
+      // must be non-empty, non-blank
       return false;
     }
     if (value.contains("|")) {
