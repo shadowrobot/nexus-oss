@@ -19,6 +19,9 @@ import javax.validation.ConstraintValidatorContext;
 import org.sonatype.nexus.common.text.Strings2;
 import org.sonatype.nexus.validation.ConstraintValidatorSupport;
 
+import com.google.common.net.InetAddresses;
+import com.google.common.net.InternetDomainName;
+
 /**
  * {@link NonProxyHosts} validator.
  *
@@ -27,7 +30,10 @@ import org.sonatype.nexus.validation.ConstraintValidatorSupport;
 public class NonProxyHostsValidator
     extends ConstraintValidatorSupport<NonProxyHosts, String[]>
 {
-  private static final Pattern NON_PROXY_HOST_PATTERN = Pattern.compile("^((\\p{IsAlphabetic}|\\d|\\-|\\_|\\*)+\\.?)*$", Pattern.UNICODE_CHARACTER_CLASS);
+  /**
+   * Wildcard in a nonProxyHost element may be only on it's beginning or end, nowhere else.
+   */
+  private static final Pattern WILDCARD_PATTERN = Pattern.compile("\\*?[^*]+\\*?");
 
   @Override
   public boolean isValid(final String[] values, final ConstraintValidatorContext context) {
@@ -45,17 +51,33 @@ public class NonProxyHostsValidator
    */
   private boolean isValid(final String value) {
     // A value should be a non-empty string optionally prefixed or suffixed with an asterisk
+    // must be non-empty, non-blank
     if (Strings2.isBlank(value)) {
-      // must be non-empty, non-blank
       return false;
     }
-    if (value.contains("|")) {
-      // must not contain | separator (used to separate multiple values in system properties)
+    // must not contain | separator (used to separate multiple values in system properties)
+    if (value.indexOf('|') > -1) {
       return false;
     }
-    if (!NON_PROXY_HOST_PATTERN.matcher(value).matches()) {
-      return false;
+    // asterisk '*' can be only on beginning or end
+    // FIXME: IPv6 with wildcard: seems to not work, as sun.misc.RegexpPool does only prefix/suffix matching, does not accounts for "[" or "]"!?
+    if (value.indexOf('*') > -1) {
+      if (!WILDCARD_PATTERN.matcher(value).matches()) {
+        return false;
+      }
     }
-    return true;
+    // is it IP4/IP6 maybe? IP6 surrounded with "[]" must have brackets removed
+    String val = value;
+    if (val.startsWith("[") && val.endsWith("]")) {
+      val = val.substring(1, val.length() - 1);
+    }
+    if (InetAddresses.isInetAddress(val.replaceAll("\\*", "1"))) {
+      return true;
+    }
+    // is it internet domain name
+    if (InternetDomainName.isValid(value.replaceAll("\\*", "foo"))) {
+      return true;
+    }
+    return false;
   }
 }

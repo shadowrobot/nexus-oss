@@ -25,6 +25,7 @@ import java.util.regex.PatternSyntaxException;
 
 import javax.annotation.Nullable;
 
+import org.sonatype.nexus.common.text.Strings2;
 import org.sonatype.nexus.httpclient.HttpClientPlan;
 import org.sonatype.nexus.httpclient.SSLContextSelector;
 import org.sonatype.nexus.httpclient.internal.NexusHttpRoutePlanner;
@@ -33,7 +34,6 @@ import org.sonatype.sisu.goodies.common.ComponentSupport;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.net.HttpHeaders;
@@ -201,13 +201,13 @@ public class ConfigurationCustomizer
     }
     String nonProxyPatternString = Joiner.on("|").join(Iterables.transform(patterns, GLOB_STRING_TO_REGEXP_STRING));
     Pattern nonProxyPattern = null;
-    try {
-      if (!Strings.isNullOrEmpty(nonProxyPatternString)) {
+    if (!Strings2.isBlank(nonProxyPatternString)) {
+      try {
         nonProxyPattern = Pattern.compile(nonProxyPatternString, Pattern.CASE_INSENSITIVE);
       }
-    }
-    catch (PatternSyntaxException e) {
-      log.warn("Invalid non-proxy host regex: {}, using defaults", nonProxyPatternString, e);
+      catch (PatternSyntaxException e) {
+        log.warn("Invalid non-proxy host regex: {}, using defaults", nonProxyPatternString, e);
+      }
     }
     return new NexusHttpRoutePlanner(proxies, nonProxyPattern);
   }

@@ -32,7 +32,7 @@ class NonProxyHostsValidatorTest
   NonProxyHostsValidator validator = new NonProxyHostsValidator()
 
   @Test
-  void 'validatiom test'() {
+  void 'validation test'() {
     assertThat(validator.isValid(['sonatype.org'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
     assertThat(validator.isValid(['*.sonatype.org'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
     assertThat(validator.isValid(['sonatype.*'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
@@ -42,6 +42,11 @@ class NonProxyHostsValidatorTest
     assertThat(validator.isValid(['1.2.3.*'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
     assertThat(validator.isValid(['*.2.3.*'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
     assertThat(validator.isValid(['csétamás.hu'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
+    assertThat(validator.isValid(['[2001:db8:85a3:8d3:1319:8a2e:370:7348]'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
+    //assertThat(validator.isValid(['[2001:db8:85a3:8d3:1319:8a2e:370:*]'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
+    //assertThat(validator.isValid(['[*:db8:85a3:8d3:1319:8a2e:370:*]'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
+    assertThat(validator.isValid(['[::1]'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
+    assertThat(validator.isValid(['localhost'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
 
     assertThat(validator.isValid([''].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(false))
     assertThat(validator.isValid(['  '].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(false))
@@ -49,5 +54,7 @@ class NonProxyHostsValidatorTest
     assertThat(validator.isValid(['sonatype..org'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(false))
     assertThat(validator.isValid(['*..sonatype.*'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(false))
     assertThat(validator.isValid(['1..2.3.4'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(false))
+    assertThat(validator.isValid(['[[:db8:85a3:8d3:1319:8a2e:370:*]'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(false))
+    assertThat(validator.isValid(['[:db8:85a3:8d3:1319:8a2e:370:*'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(false))
   }
 }
