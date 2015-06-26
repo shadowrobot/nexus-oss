@@ -22,7 +22,6 @@ import org.mockito.Mock
 
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.hamcrest.Matchers.equalTo
-import static org.mockito.Mockito.mock
 
 /**
  * Tests for {@link NonProxyHostsValidator}.
@@ -35,36 +34,36 @@ class NonProxyHostsValidatorTest
 
   NonProxyHostsValidator validator = new NonProxyHostsValidator()
 
-  private test(String expression, boolean expected) {
+  private validateAndExpect(String expression, boolean expected) {
     assertThat(validator.isValid([expression].toArray(new String[0]), context), equalTo(expected))
   }
 
   @Test
   void 'validation positive test'() {
-    test('sonatype.org', true)
-    test('*.sonatype.org', true)
-    test('*.sonatype.*', true)
-    test('1.2.3.4', true)
-    test('*.2.3.4', true)
-    test('1.2.3.*', true)
-    test('*.2.3.*', true)
-    test('csétamás.hu', true)
-    test('2001:db8:85a3:8d3:1319:8a2e:370:7348', true)
-    test('[2001:db8:85a3:8d3:1319:8a2e:370:7348]', true)
-    test('[::1]', true)
-    test('localhost', true)
+    validateAndExpect('sonatype.org', true)
+    validateAndExpect('*.sonatype.org', true)
+    validateAndExpect('*.sonatype.*', true)
+    validateAndExpect('1.2.3.4', true)
+    validateAndExpect('*.2.3.4', true)
+    validateAndExpect('1.2.3.*', true)
+    validateAndExpect('*.2.3.*', true)
+    validateAndExpect('csétamás.hu', true)
+    validateAndExpect('2001:db8:85a3:8d3:1319:8a2e:370:7348', true)
+    validateAndExpect('[2001:db8:85a3:8d3:1319:8a2e:370:7348]', true)
+    validateAndExpect('[::1]', true)
+    validateAndExpect('localhost', true)
   }
 
   @Test
   void 'validation negative test' () {
-    test('', false)
-    test('  ', false)
-    test('foo|sonatype.org', false)
-    test('sonatype..org', false)
-    test('*..sonatype.*', false)
-    test('1..2.3.4', false)
-    test('[[2001:db8:85a3:8d3:1319:8a2e:370:7348]', false)
-    test('[2001:db8:85a3:8d3:1319:8a2e:370:7348', false)
-    test('2001:db8:85a3:8d3:1319:8a2e:370:7348]', false)
+    validateAndExpect('', false)
+    validateAndExpect('  ', false)
+    validateAndExpect('foo|sonatype.org', false)
+    validateAndExpect('sonatype..org', false)
+    validateAndExpect('*..sonatype.*', false)
+    validateAndExpect('1..2.3.4', false)
+    validateAndExpect('[[2001:db8:85a3:8d3:1319:8a2e:370:7348]', false)
+    validateAndExpect('[2001:db8:85a3:8d3:1319:8a2e:370:7348', false)
+    validateAndExpect('2001:db8:85a3:8d3:1319:8a2e:370:7348]', false)
   }
 }
