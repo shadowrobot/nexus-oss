@@ -18,6 +18,7 @@ import javax.validation.ConstraintValidatorContext
 import org.sonatype.sisu.litmus.testsupport.TestSupport
 
 import org.junit.Test
+import org.mockito.Mock
 
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.hamcrest.Matchers.equalTo
@@ -29,32 +30,41 @@ import static org.mockito.Mockito.mock
 class NonProxyHostsValidatorTest
     extends TestSupport
 {
+  @Mock
+  ConstraintValidatorContext context
+
   NonProxyHostsValidator validator = new NonProxyHostsValidator()
 
-  @Test
-  void 'validation test'() {
-    assertThat(validator.isValid(['sonatype.org'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
-    assertThat(validator.isValid(['*.sonatype.org'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
-    assertThat(validator.isValid(['sonatype.*'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
-    assertThat(validator.isValid(['*.sonatype.*'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
-    assertThat(validator.isValid(['1.2.3.4'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
-    assertThat(validator.isValid(['*.2.3.4'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
-    assertThat(validator.isValid(['1.2.3.*'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
-    assertThat(validator.isValid(['*.2.3.*'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
-    assertThat(validator.isValid(['csétamás.hu'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
-    assertThat(validator.isValid(['[2001:db8:85a3:8d3:1319:8a2e:370:7348]'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
-    //assertThat(validator.isValid(['[2001:db8:85a3:8d3:1319:8a2e:370:*]'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
-    //assertThat(validator.isValid(['[*:db8:85a3:8d3:1319:8a2e:370:*]'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
-    assertThat(validator.isValid(['[::1]'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
-    assertThat(validator.isValid(['localhost'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(true))
+  private test(String expression, boolean expected) {
+    assertThat(validator.isValid([expression].toArray(new String[0]), context), equalTo(expected))
+  }
 
-    assertThat(validator.isValid([''].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(false))
-    assertThat(validator.isValid(['  '].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(false))
-    assertThat(validator.isValid(['foo|sonatype.org'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(false))
-    assertThat(validator.isValid(['sonatype..org'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(false))
-    assertThat(validator.isValid(['*..sonatype.*'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(false))
-    assertThat(validator.isValid(['1..2.3.4'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(false))
-    assertThat(validator.isValid(['[[:db8:85a3:8d3:1319:8a2e:370:*]'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(false))
-    assertThat(validator.isValid(['[:db8:85a3:8d3:1319:8a2e:370:*'].toArray(new String[0]), mock(ConstraintValidatorContext)), equalTo(false))
+  @Test
+  void 'validation positive test'() {
+    test('sonatype.org', true)
+    test('*.sonatype.org', true)
+    test('*.sonatype.*', true)
+    test('1.2.3.4', true)
+    test('*.2.3.4', true)
+    test('1.2.3.*', true)
+    test('*.2.3.*', true)
+    test('csétamás.hu', true)
+    test('2001:db8:85a3:8d3:1319:8a2e:370:7348', true)
+    test('[2001:db8:85a3:8d3:1319:8a2e:370:7348]', true)
+    test('[::1]', true)
+    test('localhost', true)
+  }
+
+  @Test
+  void 'validation negative test' () {
+    test('', false)
+    test('  ', false)
+    test('foo|sonatype.org', false)
+    test('sonatype..org', false)
+    test('*..sonatype.*', false)
+    test('1..2.3.4', false)
+    test('[[2001:db8:85a3:8d3:1319:8a2e:370:7348]', false)
+    test('[2001:db8:85a3:8d3:1319:8a2e:370:7348', false)
+    test('2001:db8:85a3:8d3:1319:8a2e:370:7348]', false)
   }
 }
