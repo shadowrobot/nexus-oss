@@ -13,6 +13,7 @@
 
 package org.sonatype.nexus.common.stateguard;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.sonatype.sisu.goodies.common.ComponentSupport;
@@ -45,16 +46,18 @@ public class TransitionsInterceptor
 
     Transitions config = method.getAnnotation(Transitions.class);
     checkState(config != null);
-    Transition transition = states.transition(config.to());
+    Transition transition = states.transition(config.to(), config.ignore());
     if (config.from() != null && config.from().length != 0) {
       transition = transition.from(config.from());
     }
 
     log.trace("Invoking: {} -> {}", transition, method);
 
-    MethodInvocationAction action = new MethodInvocationAction(invocation);
-    Object result = transition.run(action);
-    action.maybeThrow();
-    return result;
+    try {
+      return transition.run(new MethodInvocationAction(invocation));
+    }
+    catch (InvocationTargetException e) {
+      throw e.getCause();
+    }
   }
 }
