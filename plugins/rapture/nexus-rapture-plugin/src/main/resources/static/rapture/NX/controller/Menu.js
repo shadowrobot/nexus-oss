@@ -215,7 +215,7 @@ Ext.define('NX.controller.Menu', {
       me.currentSelectedPath = path;
 
       //<if debug>
-      me.logDebug('Selected feature: ' + path);
+      me.logInfo('Selected feature: ' + path);
       //</if>
 
       me.selectFeature(me.getStore('Feature').getById(featureMenuModel.get('path')));
@@ -281,7 +281,7 @@ Ext.define('NX.controller.Menu', {
       }
 
       //<if debug>
-      me.logDebug('Navigate to: ' + menuBookmark);
+      me.logInfo('Navigate to: ' + menuBookmark);
       //</if>
 
       mode = me.getMode(bookmark);
