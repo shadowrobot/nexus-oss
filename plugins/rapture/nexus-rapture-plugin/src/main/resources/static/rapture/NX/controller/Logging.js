@@ -22,9 +22,20 @@ Ext.define('NX.controller.Logging', {
   require: [
     'NX.Log'
   ],
+  mixins: {
+    logAware: 'NX.LogAware'
+  },
+
   stores: [
     'LogEvent'
   ],
+
+  /**
+   * Enable event remoting.
+   *
+   * @property {Boolean}
+   */
+  remote: false,
 
   /**
    * Attach to NX.Log helper.
@@ -33,6 +44,18 @@ Ext.define('NX.controller.Logging', {
    */
   onLaunch: function () {
     NX.Log.attach(this);
+  },
+
+  /**
+   * Toggle event remoting.
+   *
+   * @public
+   * @param {boolean} flag
+   */
+  setRemote: function(flag) {
+    var me = this;
+    this.remote = flag;
+    me.logInfo('Remote events:', flag ? 'enabled' : 'disabled');
   },
 
   /**
@@ -53,11 +76,13 @@ Ext.define('NX.controller.Logging', {
     store.add(event);
 
     // HACK: experimental: remote events to server
-    var copy = Ext.clone(event);
+    if (me.remote) {
+      var copy = Ext.clone(event);
 
-    // HACK: kill timestamp... GSON freaks out
-    delete copy.timestamp;
+      // HACK: kill timestamp... GSON freaks out
+      delete copy.timestamp;
 
-    NX.direct.rapture_LogEvent.recordEvent(copy);
+      NX.direct.rapture_LogEvent.recordEvent(copy);
+    }
   }
 });

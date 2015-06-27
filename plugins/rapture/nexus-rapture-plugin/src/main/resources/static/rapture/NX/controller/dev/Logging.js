@@ -41,6 +41,9 @@ Ext.define('NX.controller.dev.Logging', {
       component: {
         'nx-dev-logging button[action=clear]': {
           click: me.clearStore
+        },
+        'nx-dev-logging checkbox[itemId=remote]': {
+          change: me.toggleRemote
         }
       }
     });
@@ -56,5 +59,15 @@ Ext.define('NX.controller.dev.Logging', {
         store = me.getStore('LogEvent');
 
     store.removeAll();
+  },
+
+  /**
+   * Toggle event remoting.
+   *
+   * @private
+   * @param {Ext.form.field.Checkbox} checkbox
+   */
+  toggleRemote: function(checkbox) {
+    this.getController('Logging').setRemote(checkbox.getValue());
   }
 });

@@ -40,6 +40,12 @@ Ext.define('NX.view.dev.Logging', {
       xtype: 'button',
       text: 'Clear events',
       action: 'clear'
+    },
+    '-',
+    {
+      xtype: 'checkbox',
+      boxLabel: 'Remote events',
+      itemId: 'remote'
     }
   ],
 
