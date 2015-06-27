@@ -55,13 +55,8 @@ Ext.define('NX.Log', {
    * Set up the logging environment.
    */
   constructor: function () {
-    this.console = {};
-
     //<if debug>
-    if (!this.disable) {
-      // default to existing console object, unless its missing
-      this.console = console || {};
-    }
+    this.console = NX.global.console || {};
 
     // apply default empty functions to console if missing
     Ext.applyIf(this.console, {
@@ -86,6 +81,10 @@ Ext.define('NX.Log', {
    */
   log: function (level, args) {
     //<if debug>
+    if (this.disable) {
+      return;
+    }
+
     var c = this.console;
     switch (level) {
       case 'trace':
