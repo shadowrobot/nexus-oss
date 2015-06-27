@@ -96,7 +96,7 @@ Ext.define('NX.controller.Permissions', {
     NX.Permissions.setPermissions(me.getPermissions());
 
     //<if debug>
-    me.logDebug('Permissions changed. Firing event');
+    me.logDebug('Permissions changed; Firing event');
     //</if>
 
     me.fireEvent('changed', NX.Permissions);
