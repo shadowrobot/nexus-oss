@@ -21,48 +21,142 @@ Ext.define('NX.Log', {
   singleton: true,
 
   /**
+   * @private
+   */
+  console: undefined,
+
+  /**
+   * Set to true to disable all application logging.
+   *
+   * NOTE: all logging is already disabled when using mode=prod sources; logging calls are stripped out.
+   *
+   * @public
+   * @property {Boolean}
+   */
+  disable: false,
+
+  /**
+   * Set to true to enable trace logging.
+   *
+   * @public
+   * @property {Boolean}
+   */
+  traceEnabled: false,
+
+  /**
+   * Set to false to disable debug logging.
+   *
+   * @public
+   * @property {Boolean}
+   */
+  debugEnabled: true,
+
+  /**
+   * Set up the logging environment.
+   */
+  constructor: function () {
+    this.console = {};
+
+    //<if debug>
+    if (!this.disable) {
+      // default to existing console object, unless its missing
+      this.console = console || {};
+    }
+
+    // apply default empty functions to console if missing
+    Ext.applyIf(this.console, {
+      log: Ext.emptyFn,
+      info: Ext.emptyFn,
+      warn: Ext.emptyFn,
+      error: Ext.emptyFn
+    });
+
+    // use ?debug to enable
+    this.debugEnabled = NX.global.location.href.search("[?&]debug") > -1;
+
+    // use ?debug&trace to enable
+    this.traceEnabled = NX.global.location.href.search("[?&]trace") > -1;
+    //</if>
+  },
+
+  /**
+   * @public
    * @param {String} level
    * @param {Array} args
    */
   log: function (level, args) {
-    var config = {
-      level: level,
-      msg: args.join(' ')
-    };
+    //<if debug>
+    var c = this.console;
+    switch (level) {
+      case 'trace':
+        if (this.traceEnabled) {
+          c.log.apply(c, args);
+        }
+        break;
 
-    // translate debug -> log for Ext.log
-    if (level === 'debug') {
-      config.level = 'log';
+      case 'debug':
+        if (this.debugEnabled) {
+          c.log.apply(c, args);
+        }
+        break;
+
+      case 'info':
+        c.info.apply(c, args);
+        break;
+
+      case 'warn':
+        c.warn.apply(c, args);
+        break;
+
+      case 'error':
+        c.error.apply(c, args);
+        break;
     }
+    //</if>
+  },
 
-    Ext.log(config);
+  /**
+   * @public
+   */
+  trace: function() {
+    //<if debug>
+    this.log('trace', Array.prototype.slice.call(arguments));
+    //</if>
   },
 
   /**
    * @public
    */
   debug: function () {
+    //<if debug>
     this.log('debug', Array.prototype.slice.call(arguments));
+    //</if>
   },
 
   /**
    * @public
    */
   info: function () {
+    //<if debug>
     this.log('info', Array.prototype.slice.call(arguments));
+    //</if>
   },
 
   /**
    * @public
    */
   warn: function () {
+    //<if debug>
     this.log('warn', Array.prototype.slice.call(arguments));
+    //</if>
   },
 
   /**
    * @public
    */
   error: function () {
+    //<if debug>
     this.log('error', Array.prototype.slice.call(arguments));
+    //</if>
   }
 });
