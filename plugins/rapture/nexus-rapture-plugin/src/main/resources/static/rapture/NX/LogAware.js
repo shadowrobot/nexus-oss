@@ -28,8 +28,7 @@ Ext.define('NX.LogAware', {
    */
   log: function (level, args) {
     //<if debug>
-    args.unshift('[' + Ext.getClassName(this) + ']');
-    NX.Log.log(level, args);
+    NX.Log.recordEvent(level, Ext.getClassName(this), args.join(' '));
     //</if>
   },
 

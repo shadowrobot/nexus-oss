@@ -29,18 +29,9 @@ Ext.define('NX.view.dev.Logging', {
   },
 
   columns: [
-    //{
-    //  xtype: 'nx-iconcolumn',
-    //  text: 'icon',
-    //  dataIndex: 'type',
-    //  width: 48,
-    //  align: 'center',
-    //  iconNamePrefix: 'message-',
-    //  iconVariant: 'x16'
-    //},
     { text: 'level', dataIndex: 'level' },
     { text: 'logger', dataIndex: 'logger', flex: 1 },
-    { text: 'message', dataIndex: 'message', flex: 2 },
+    { text: 'message', dataIndex: 'message', flex: 3 },
     { text: 'timestamp', dataIndex: 'timestamp', width: 300 }
   ],
 
@@ -53,8 +44,6 @@ Ext.define('NX.view.dev.Logging', {
   ],
 
   plugins: [
-    { ptype: 'rowediting', clicksToEdit: 1 },
     'gridfilterbox'
   ]
-
 });

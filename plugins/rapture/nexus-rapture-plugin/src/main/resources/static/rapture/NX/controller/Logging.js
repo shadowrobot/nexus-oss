@@ -26,12 +26,12 @@ Ext.define('NX.controller.Logging', {
     'LogEvent'
   ],
 
-  /**
-   * @override
-   */
-  init: function () {
-    // TODO:
-  },
+  ///**
+  // * @override
+  // */
+  //init: function () {
+  //  // TODO:
+  //},
 
   /**
    * @override
@@ -44,9 +44,14 @@ Ext.define('NX.controller.Logging', {
    * @public
    * @param event
    */
-  log: function(event) {
+  recordEvent: function(event) {
     var me = this,
         store = me.getStore('LogEvent');
+
+    // ensure events have a timestamp
+    if (!event.timestamp) {
+      event.timestamp = new Date();
+    }
 
     store.add(event);
   }
