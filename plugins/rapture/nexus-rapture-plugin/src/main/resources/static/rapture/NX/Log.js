@@ -19,65 +19,14 @@
  */
 Ext.define('NX.Log', {
   singleton: true,
-
-  /**
-   * @private
-   */
-  console: undefined,
-
-  /**
-   * Set to true to disable all application logging.
-   *
-   * NOTE: all logging is already disabled when using mode=prod sources; logging calls are stripped out.
-   *
-   * @public
-   * @property {Boolean}
-   */
-  disable: false,
-
-  /**
-   * Set to true to enable trace logging.
-   *
-   * @public
-   * @property {Boolean}
-   */
-  traceEnabled: false,
-
-  /**
-   * Set to false to disable debug logging.
-   *
-   * @public
-   * @property {Boolean}
-   */
-  debugEnabled: true,
+  requires: [
+    'NX.Console'
+  ],
 
   /**
    * @private
    */
   controller: undefined,
-
-  /**
-   * Set up the logging environment.
-   */
-  constructor: function () {
-    //<if debug>
-    this.console = NX.global.console || {};
-
-    // apply default empty functions to console if missing
-    Ext.applyIf(this.console, {
-      log: Ext.emptyFn,
-      info: Ext.emptyFn,
-      warn: Ext.emptyFn,
-      error: Ext.emptyFn
-    });
-
-    // use ?debug to enable
-    this.debugEnabled = NX.global.location.href.search("[?&]debug") > -1;
-
-    // use ?debug&trace to enable
-    this.traceEnabled = NX.global.location.href.search("[?&]trace") > -1;
-    //</if>
-  },
 
   /**
    * Buffer of log events before controller is attached.
@@ -93,122 +42,44 @@ Ext.define('NX.Log', {
    * @public
    * @param {NX.controller.Logging} controller
    */
-  attach: function(controller) {
+  attach: function (controller) {
     var me = this;
     me.controller = controller;
 
     // apply boot event buffer to controller
-    Ext.each(me.eventBuffer, function(event) {
+    Ext.each(me.eventBuffer, function (event) {
       me.controller.recordEvent(event);
     });
     delete me.eventBuffer;
+
+    NX.Console.info('Logging controller attached');
   },
 
   /**
+   * Record a log event.
+   *
    * @public
    * @param {string} level
    * @param {string} logger
    * @param {string} message
    */
-  recordEvent: function(level, logger, message) {
-    var event = {
-      timestamp: new Date(),
-      level: level,
-      logger: logger,
-      message: message
-    };
+  recordEvent: function (level, logger, message) {
+    var me = this,
+        event = {
+          timestamp: new Date(),
+          level: level,
+          logger: logger,
+          message: message
+        };
 
-    if (this.controller) {
-      this.controller.recordEvent(event);
+    // if controller is attached, delegate to record the event
+    if (me.controller) {
+      me.controller.recordEvent(event);
     }
     else {
-      this.eventBuffer.push(event);
-      this.log(level, [logger, message]);
+      // else buffer the event emit to console
+      me.eventBuffer.push(event);
+      NX.Console.log(level, [logger, message]);
     }
-  },
-
-  /**
-   * @public
-   * @param {String} level
-   * @param {Array} args
-   */
-  log: function (level, args) {
-    //<if debug>
-    if (this.disable) {
-      return;
-    }
-
-    var c = this.console;
-    switch (level) {
-      case 'trace':
-        if (this.traceEnabled) {
-          c.log.apply(c, args);
-        }
-        break;
-
-      case 'debug':
-        if (this.debugEnabled) {
-          c.log.apply(c, args);
-        }
-        break;
-
-      case 'info':
-        c.info.apply(c, args);
-        break;
-
-      case 'warn':
-        c.warn.apply(c, args);
-        break;
-
-      case 'error':
-        c.error.apply(c, args);
-        break;
-    }
-    //</if>
-  },
-
-  /**
-   * @public
-   */
-  trace: function() {
-    //<if debug>
-    this.log('trace', Array.prototype.slice.call(arguments));
-    //</if>
-  },
-
-  /**
-   * @public
-   */
-  debug: function () {
-    //<if debug>
-    this.log('debug', Array.prototype.slice.call(arguments));
-    //</if>
-  },
-
-  /**
-   * @public
-   */
-  info: function () {
-    //<if debug>
-    this.log('info', Array.prototype.slice.call(arguments));
-    //</if>
-  },
-
-  /**
-   * @public
-   */
-  warn: function () {
-    //<if debug>
-    this.log('warn', Array.prototype.slice.call(arguments));
-    //</if>
-  },
-
-  /**
-   * @public
-   */
-  error: function () {
-    //<if debug>
-    this.log('error', Array.prototype.slice.call(arguments));
-    //</if>
   }
 });
