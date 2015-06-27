@@ -19,6 +19,8 @@
  */
 Ext.define('NX.controller.dev.Conditions', {
   extend: 'Ext.app.Controller',
+
+  //<if debug>
   requires: [
     'Ext.util.Filter'
   ],
@@ -155,5 +157,5 @@ Ext.define('NX.controller.dev.Conditions', {
       store.filter();
     }
   }
-
+  //</if>
 });

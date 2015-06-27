@@ -19,6 +19,8 @@
  */
 Ext.define('NX.controller.dev.Stores', {
   extend: 'Ext.app.Controller',
+
+  //<if debug>
   requires: [
     'Ext.data.StoreManager'
   ],
@@ -104,5 +106,5 @@ Ext.define('NX.controller.dev.Stores', {
       grid.getStore().removeAll();
     }
   }
-
+  //</if>
 });
