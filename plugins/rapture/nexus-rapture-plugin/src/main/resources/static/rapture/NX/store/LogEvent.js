@@ -13,42 +13,11 @@
 /*global Ext*/
 
 /**
- * The developer panel.
+ * LogEvent store.
  *
  * @since 3.0
  */
-Ext.define('NX.view.dev.Panel', {
-  extend: 'Ext.panel.Panel',
-  requires: [
-    'NX.view.dev.Styles'
-  ],
-  alias: 'widget.nx-dev-panel',
-
-  title: 'Developer',
-  glyph: 'xf188@FontAwesome', // fa-bug
-  ui: 'nx-developer',
-  stateful: true,
-  stateId: 'nx-dev-panel',
-
-  tools: [
-    { type: 'maximize', tooltip: 'Maximize' }
-  ],
-
-  layout: 'fit',
-  items: {
-    xtype: 'tabpanel',
-    tabPosition: 'bottom',
-
-    items: [
-      { xtype: 'nx-dev-tests' },
-      { xtype: 'nx-dev-styles' },
-      { xtype: 'nx-dev-icons' },
-      { xtype: 'nx-dev-features' },
-      { xtype: 'nx-dev-permissions' },
-      { xtype: 'nx-dev-messages' },
-      { xtype: 'nx-dev-state' },
-      { xtype: 'nx-dev-stores' },
-      { xtype: 'nx-dev-logging' }
-    ]
-  }
+Ext.define('NX.store.LogEvent', {
+  extend: 'Ext.data.Store',
+  model: 'NX.model.LogEvent'
 });

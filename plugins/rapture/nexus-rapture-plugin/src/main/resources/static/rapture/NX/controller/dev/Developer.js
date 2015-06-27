@@ -35,7 +35,8 @@ Ext.define('NX.controller.dev.Developer', {
     'dev.Messages',
     'dev.Features',
     'dev.State',
-    'dev.Stores'
+    'dev.Stores',
+    'dev.Logging'
   ],
 
   refs: [

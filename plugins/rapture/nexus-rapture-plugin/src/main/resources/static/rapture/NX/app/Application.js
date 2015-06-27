@@ -102,6 +102,7 @@ Ext.define('NX.app.Application', {
    * Always active controllers.
    */
   controllers: [
+    'Logging',
     'State',
     'Bookmarking',
     'ExtDirect',

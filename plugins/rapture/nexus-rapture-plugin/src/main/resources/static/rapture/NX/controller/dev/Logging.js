@@ -13,42 +13,48 @@
 /*global Ext*/
 
 /**
- * The developer panel.
+ * Logging dev-panel controller.
  *
  * @since 3.0
  */
-Ext.define('NX.view.dev.Panel', {
-  extend: 'Ext.panel.Panel',
-  requires: [
-    'NX.view.dev.Styles'
-  ],
-  alias: 'widget.nx-dev-panel',
+Ext.define('NX.controller.dev.Logging', {
+  extend: 'Ext.app.Controller',
 
-  title: 'Developer',
-  glyph: 'xf188@FontAwesome', // fa-bug
-  ui: 'nx-developer',
-  stateful: true,
-  stateId: 'nx-dev-panel',
-
-  tools: [
-    { type: 'maximize', tooltip: 'Maximize' }
+  stores: [
+    'LogEvent'
   ],
 
-  layout: 'fit',
-  items: {
-    xtype: 'tabpanel',
-    tabPosition: 'bottom',
+  refs: [
+    {
+      ref: 'panel',
+      selector: 'nx-dev-logging'
+    }
+  ],
 
-    items: [
-      { xtype: 'nx-dev-tests' },
-      { xtype: 'nx-dev-styles' },
-      { xtype: 'nx-dev-icons' },
-      { xtype: 'nx-dev-features' },
-      { xtype: 'nx-dev-permissions' },
-      { xtype: 'nx-dev-messages' },
-      { xtype: 'nx-dev-state' },
-      { xtype: 'nx-dev-stores' },
-      { xtype: 'nx-dev-logging' }
-    ]
+  /**
+   * @override
+   */
+  init: function () {
+    var me = this;
+
+    me.listen({
+      component: {
+        'nx-dev-logging button[action=clear]': {
+          click: me.clearStore
+        }
+      }
+    });
+  },
+
+  /**
+   * Clear the LogEvent store.
+   *
+   * @private
+   */
+  clearStore: function () {
+    var me = this,
+        store = me.getStore('LogEvent');
+
+    store.removeAll();
   }
 });

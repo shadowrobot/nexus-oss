@@ -52,6 +52,11 @@ Ext.define('NX.Log', {
   debugEnabled: true,
 
   /**
+   * @private
+   */
+  controller: undefined,
+
+  /**
    * Set up the logging environment.
    */
   constructor: function () {
@@ -76,6 +81,14 @@ Ext.define('NX.Log', {
 
   /**
    * @public
+   * @param {NX.controller.Logging} controller
+   */
+  attach: function(controller) {
+    this.controller = controller;
+  },
+
+  /**
+   * @public
    * @param {String} level
    * @param {Array} args
    */
@@ -83,6 +96,14 @@ Ext.define('NX.Log', {
     //<if debug>
     if (this.disable) {
       return;
+    }
+
+    if (this.controller) {
+      this.controller.log({
+        timestamp: new Date(),
+        level: level,
+        message: args.join(',')
+      });
     }
 
     var c = this.console;

@@ -10,45 +10,44 @@
  * of Sonatype, Inc. Apache Maven is a trademark of the Apache Software Foundation. M2eclipse is a trademark of the
  * Eclipse Foundation. All other trademarks are the property of their respective owners.
  */
-/*global Ext*/
+/*global Ext, NX*/
 
 /**
- * The developer panel.
+ * Logging controller.
  *
  * @since 3.0
  */
-Ext.define('NX.view.dev.Panel', {
-  extend: 'Ext.panel.Panel',
-  requires: [
-    'NX.view.dev.Styles'
+Ext.define('NX.controller.Logging', {
+  extend: 'Ext.app.Controller',
+  require: [
+    'NX.Log'
   ],
-  alias: 'widget.nx-dev-panel',
-
-  title: 'Developer',
-  glyph: 'xf188@FontAwesome', // fa-bug
-  ui: 'nx-developer',
-  stateful: true,
-  stateId: 'nx-dev-panel',
-
-  tools: [
-    { type: 'maximize', tooltip: 'Maximize' }
+  stores: [
+    'LogEvent'
   ],
 
-  layout: 'fit',
-  items: {
-    xtype: 'tabpanel',
-    tabPosition: 'bottom',
+  /**
+   * @override
+   */
+  init: function () {
+    // TODO:
+  },
 
-    items: [
-      { xtype: 'nx-dev-tests' },
-      { xtype: 'nx-dev-styles' },
-      { xtype: 'nx-dev-icons' },
-      { xtype: 'nx-dev-features' },
-      { xtype: 'nx-dev-permissions' },
-      { xtype: 'nx-dev-messages' },
-      { xtype: 'nx-dev-state' },
-      { xtype: 'nx-dev-stores' },
-      { xtype: 'nx-dev-logging' }
-    ]
+  /**
+   * @override
+   */
+  onLaunch: function () {
+    NX.Log.attach(this);
+  },
+
+  /**
+   * @public
+   * @param event
+   */
+  log: function(event) {
+    var me = this,
+        store = me.getStore('LogEvent');
+
+    store.add(event);
   }
 });
