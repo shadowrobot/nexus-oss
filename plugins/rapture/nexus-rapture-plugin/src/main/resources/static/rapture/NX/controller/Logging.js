@@ -26,14 +26,9 @@ Ext.define('NX.controller.Logging', {
     'LogEvent'
   ],
 
-  ///**
-  // * @override
-  // */
-  //init: function () {
-  //  // TODO:
-  //},
-
   /**
+   * Attach to NX.Log helper.
+   *
    * @override
    */
   onLaunch: function () {
@@ -41,6 +36,8 @@ Ext.define('NX.controller.Logging', {
   },
 
   /**
+   * Record a log-event.
+   *
    * @public
    * @param event
    */
