@@ -21,7 +21,8 @@ Ext.define('NX.controller.dev.Logging', {
   extend: 'Ext.app.Controller',
 
   stores: [
-    'LogEvent'
+    'LogEvent',
+    'LogLevel'
   ],
 
   refs: [
@@ -40,34 +41,24 @@ Ext.define('NX.controller.dev.Logging', {
     me.listen({
       component: {
         'nx-dev-logging button[action=clear]': {
-          click: me.clearStore
+          click: function(button) {
+            me.getStore('LogEvent').removeAll();
+          }
         },
         'nx-dev-logging checkbox[itemId=remote]': {
-          change: me.toggleRemote
+          change: function(checkbox) {
+            me.getController('Logging').setRemote(checkbox.getValue());
+          }
+        },
+        'nx-dev-logging combobox[itemId=threshold]': {
+          select: function(combo) {
+            me.getController('Logging').setThreshold(combo.getValue());
+          },
+          afterrender: function(combo) {
+            combo.select(me.getController('Logging').getThreshold());
+          }
         }
       }
     });
-  },
-
-  /**
-   * Clear the LogEvent store.
-   *
-   * @private
-   */
-  clearStore: function () {
-    var me = this,
-        store = me.getStore('LogEvent');
-
-    store.removeAll();
-  },
-
-  /**
-   * Toggle event remoting.
-   *
-   * @private
-   * @param {Ext.form.field.Checkbox} checkbox
-   */
-  toggleRemote: function(checkbox) {
-    this.getController('Logging').setRemote(checkbox.getValue());
   }
 });

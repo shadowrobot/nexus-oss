@@ -38,6 +38,13 @@ Ext.define('NX.controller.Logging', {
   remote: false,
 
   /**
+   * Logging threshold.
+   *
+   * @property {string}
+   */
+  threshold: 'debug',
+
+  /**
    * Attach to NX.Log helper.
    *
    * @override
@@ -52,7 +59,7 @@ Ext.define('NX.controller.Logging', {
    * @public
    * @param {boolean} flag
    */
-  setRemote: function(flag) {
+  setRemote: function (flag) {
     var me = this;
     this.remote = flag;
     //<if debug>
@@ -61,27 +68,69 @@ Ext.define('NX.controller.Logging', {
   },
 
   /**
+   * @public
+   * @returns {string}
+   */
+  getThreshold: function () {
+    return this.threshold;
+  },
+
+  /**
+   * @public
+   * @param {string} threshold
+   */
+  setThreshold: function (threshold) {
+    this.threshold = threshold;
+  },
+
+  /**
+   * @private
+   */
+  levelWeights: {
+    all: 1,
+    trace: 2,
+    debug: 3,
+    info: 4,
+    warn: 5,
+    off: 6
+  },
+
+  /**
+   * Check if given level exceeds configured threshold.
+   *
+   * @private
+   * @param {string} level
+   * @return {boolean}
+   */
+  exceedsThreshold: function (level) {
+    return this.levelWeights[level] >= this.levelWeights[this.threshold];
+  },
+
+  /**
    * Record a log-event.
    *
    * @public
    * @param event
    */
-  recordEvent: function(event) {
-    var me = this,
-        store = me.getStore('LogEvent');
+  recordEvent: function (event) {
+    var me = this;
+
+    // ignore events that do not exceed threshold
+    if (!me.exceedsThreshold(event.level)) {
+      return;
+    }
 
     // ensure events have a timestamp
     if (!event.timestamp) {
       event.timestamp = new Date();
     }
 
-    store.add(event);
+    me.getStore('LogEvent').add(event);
 
     // HACK: experimental: remote events to server
     if (me.remote) {
-      var copy = Ext.clone(event);
-
       // HACK: kill timestamp... GSON freaks out
+      var copy = Ext.clone(event);
       delete copy.timestamp;
 
       NX.direct.rapture_LogEvent.recordEvent(copy);

@@ -43,9 +43,25 @@ Ext.define('NX.view.dev.Logging', {
     },
     '-',
     {
+      xtype: 'label',
+      text: 'Threshold'
+    },
+    {
+      xtype: 'combo',
+      itemId: 'threshold',
+      store: 'LogLevel',
+      width: 80,
+      displayField: 'name',
+      valueField: 'name',
+      queryMode: 'local',
+      allowBlank: false,
+      editable: false
+    },
+    '-',
+    {
       xtype: 'checkbox',
-      boxLabel: 'Remote events',
-      itemId: 'remote'
+      itemId: 'remote',
+      boxLabel: 'Remote events'
     }
   ],
 

@@ -13,16 +13,13 @@
 /*global Ext*/
 
 /**
- * Log-event model.
+ * Log-level model.
  *
  * @since 3.0
  */
-Ext.define('NX.model.LogEvent', {
+Ext.define('NX.model.LogLevel', {
   extend: 'Ext.data.Model',
   fields: [
-    { name: 'timestamp', type: 'date' },
-    { name: 'logger', type: 'string' },
-    { name: 'level', type: 'string' },
-    { name: 'message', type: 'string' }
+    { name: 'name', type: 'string' }
   ]
 });
