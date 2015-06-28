@@ -45,7 +45,7 @@ Ext.define('NX.view.dev.Logging', {
     '-',
     {
       xtype: 'label',
-      text: 'Threshold'
+      text: 'Threshold:'
     },
     {
       xtype: 'combo',
