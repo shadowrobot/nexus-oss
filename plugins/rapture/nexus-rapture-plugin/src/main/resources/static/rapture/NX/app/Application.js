@@ -142,7 +142,6 @@ Ext.define('NX.app.Application', {
       return NX.State.getValue('debug') === true;
     },
     bundleActive: function (symbolicName) {
-      // FIXME: Rename key
       return NX.State.getValue('activeBundles').indexOf(symbolicName) > -1;
     }
   },
@@ -155,7 +154,7 @@ Ext.define('NX.app.Application', {
     var me = this;
 
     //<if debug>
-    me.logDebug('Initializing');
+    me.logInfo('Initializing');
     me.logDebug(me.managedControllers.getCount() + ' managed controllers');
     //</if>
 
@@ -287,7 +286,7 @@ Ext.define('NX.app.Application', {
     var me = this, hideMask;
 
     //<if debug>
-    me.logDebug('Starting');
+    me.logInfo('Starting');
     //</if>
 
     Ext.create('NX.view.Viewport');
