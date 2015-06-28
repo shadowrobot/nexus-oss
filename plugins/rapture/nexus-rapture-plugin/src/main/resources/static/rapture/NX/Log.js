@@ -77,7 +77,7 @@ Ext.define('NX.Log', {
       me.controller.recordEvent(event);
     }
     else {
-      // else buffer the event emit to console
+      // else queue the event and emit to console
       me.eventQueue.push(event);
       NX.Console.log(level, [logger, message]);
     }
