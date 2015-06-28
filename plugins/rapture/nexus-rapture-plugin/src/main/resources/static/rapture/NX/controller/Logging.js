@@ -84,6 +84,8 @@ Ext.define('NX.controller.Logging', {
   },
 
   /**
+   * Mapping of NX.store.LogLevel weights.
+   *
    * @private
    */
   levelWeights: {

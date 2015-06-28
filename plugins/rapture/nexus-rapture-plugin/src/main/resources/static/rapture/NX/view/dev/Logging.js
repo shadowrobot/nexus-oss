@@ -39,7 +39,8 @@ Ext.define('NX.view.dev.Logging', {
     {
       xtype: 'button',
       text: 'Clear events',
-      action: 'clear'
+      action: 'clear',
+      glyph: 'xf12d@FontAwesome' /* fa-eraser */
     },
     '-',
     {
