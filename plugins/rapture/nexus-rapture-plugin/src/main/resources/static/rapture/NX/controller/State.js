@@ -54,6 +54,9 @@ Ext.define('NX.controller.State', {
    */
   receiving: false,
 
+  /**
+   * @override
+   */
   init: function () {
     var me = this;
 
@@ -84,6 +87,9 @@ Ext.define('NX.controller.State', {
     );
   },
 
+  /**
+   * @override
+   */
   onLaunch: function () {
     var uiSettings = NX.app.state['uiSettings'];
 
@@ -204,7 +210,11 @@ Ext.define('NX.controller.State', {
 
   notifyChange: function (key, value, oldValue) {
     var me = this;
-    me.logDebug('Changed: ' + key + ' -> ' + (value ? Ext.JSON.encode(value) : '(deleted)'));
+
+    //<if debug>
+    me.logTrace('Changed: ' + key + ' -> ' + (value ? Ext.JSON.encode(value) : '(deleted)'));
+    //</if>
+
     me.fireEvent(key.toLowerCase() + 'changed', value, oldValue);
     me.fireEvent('changed', key, value, oldValue);
   },
@@ -366,6 +376,7 @@ Ext.define('NX.controller.State', {
           // Stop polling
           me.statusProvider.disconnect();
 
+          // FIXME: i18n
           // Show the UI with a modal dialog error
           NX.Dialogs.showError(
               'Server disconnected',
@@ -422,6 +433,7 @@ Ext.define('NX.controller.State', {
 
   reloadWhenServerIdChanged: function (serverId, oldServerId) {
     if (oldServerId && (serverId !== oldServerId)) {
+      // FIXME: i18n
       NX.Dialogs.showInfo(
           'Server restarted',
           'Application will be reloaded as server has been restarted',
