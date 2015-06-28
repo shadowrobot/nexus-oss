@@ -42,7 +42,7 @@ Ext.define('NX.app.Loader', {
     var me = this, App;
 
     //<if debug>
-    me.logDebug('Loading');
+    me.logInfo('Loading');
     //</if>
 
     // sanity check config
@@ -67,7 +67,7 @@ Ext.define('NX.app.Loader', {
         NX.app.debug = true;
 
         //<if debug>
-        me.logDebug('Debug mode enabled');
+        me.logInfo('Debug mode enabled');
         //</if>
       }
       else {
@@ -96,13 +96,13 @@ Ext.define('NX.app.Loader', {
       });
 
       //<if debug>
-      me.logDebug('Application loaded');
+      me.logInfo('Application loaded');
       //</if>
 
       Ext.app.Application.instance.start();
 
       //<if debug>
-      me.logDebug('Application started');
+      me.logInfo('Application started');
       //</if>
     });
   },
