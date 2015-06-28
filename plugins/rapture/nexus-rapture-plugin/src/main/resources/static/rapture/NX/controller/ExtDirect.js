@@ -27,6 +27,9 @@ Ext.define('NX.controller.ExtDirect', {
     'NX.Messages'
   ],
 
+  /**
+   * @override
+   */
   init: function() {
     var me = this;
 
@@ -40,9 +43,10 @@ Ext.define('NX.controller.ExtDirect', {
   },
 
   /**
-   * @private
    * Checks Ext.Direct response and automatically show warning messages if an error occurred.
    * If response specifies that authentication is required, will show the sign-in window.
+   *
+   * @private
    */
   checkResponse: function(provider, transaction) {
     var me = this,
