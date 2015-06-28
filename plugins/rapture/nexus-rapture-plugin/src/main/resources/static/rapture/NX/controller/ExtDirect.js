@@ -49,6 +49,8 @@ Ext.define('NX.controller.ExtDirect', {
         result = transaction.result,
         message;
 
+    // FIXME: Anything that does logging here can cause Ext.Direct log event remoting to spin out of control
+
     if (Ext.isDefined(result)) {
       if (Ext.isDefined(result.success) && result.success === false) {
 

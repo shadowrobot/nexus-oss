@@ -55,7 +55,9 @@ Ext.define('NX.controller.Logging', {
   setRemote: function(flag) {
     var me = this;
     this.remote = flag;
+    //<if debug>
     me.logInfo('Remote events:', flag ? 'enabled' : 'disabled');
+    //</if>
   },
 
   /**
