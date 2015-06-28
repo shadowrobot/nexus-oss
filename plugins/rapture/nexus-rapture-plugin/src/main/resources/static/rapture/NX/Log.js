@@ -29,12 +29,12 @@ Ext.define('NX.Log', {
   controller: undefined,
 
   /**
-   * Buffer of log events before controller is attached.
+   * Queue of events logged before controller is attached.
    * This is deleted upon attachment after events are passed to the controller.
    *
    * @private
    */
-  eventBuffer: [],
+  eventQueue: [],
 
   /**
    * Attach to the logging controller.
@@ -46,11 +46,11 @@ Ext.define('NX.Log', {
     var me = this;
     me.controller = controller;
 
-    // apply boot event buffer to controller
-    Ext.each(me.eventBuffer, function (event) {
+    // reply queued events and clear
+    Ext.each(me.eventQueue, function (event) {
       me.controller.recordEvent(event);
     });
-    delete me.eventBuffer;
+    delete me.eventQueue;
 
     NX.Console.info('Logging controller attached');
   },
@@ -78,7 +78,7 @@ Ext.define('NX.Log', {
     }
     else {
       // else buffer the event emit to console
-      me.eventBuffer.push(event);
+      me.eventQueue.push(event);
       NX.Console.log(level, [logger, message]);
     }
   }
