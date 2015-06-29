@@ -10,36 +10,53 @@
  * of Sonatype, Inc. Apache Maven is a trademark of the Apache Software Foundation. M2eclipse is a trademark of the
  * Eclipse Foundation. All other trademarks are the property of their respective owners.
  */
-package org.sonatype.nexus.testsuite.maven.perf;
+package org.sonatype.nexus.testsuite.maven.chs;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.SequenceInputStream;
 
-import com.google.common.base.Charsets;
 import com.google.common.net.MediaType;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
- * Content generator for text.
+ * Content generator for ZIP files. Note: this class does NOT generate valid ZIP files, only appends smallest ZIP file
+ * to stream beginning with minimal ZIP file and fills the rest with zeroes.
  */
-public class TextGenerator
+public class ZipGenerator
     extends Generator
 {
-  private static final String LOREM_IPSUM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
+  private static final byte[] EMPTY_ZIP = new byte[]{
+      80, 75, 05, 06, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00
+  };
 
   @Override
   public String getContentType() {
-    return MediaType.PLAIN_TEXT_UTF_8.toString();
+    return MediaType.ZIP.toString();
   }
 
   @Override
   public long getExactContentLength(final long length) {
-    return length;
+    if (length <= EMPTY_ZIP.length) {
+      return EMPTY_ZIP.length;
+    }
+    else {
+      long timesZeroByte = length - EMPTY_ZIP.length;
+      return EMPTY_ZIP.length + timesZeroByte;
+    }
   }
 
   @Override
   public InputStream generate(final long length) {
     checkArgument(length > 0);
-    return exactLength(LOREM_IPSUM.getBytes(Charsets.UTF_8), length);
+    if (length <= EMPTY_ZIP.length) {
+      // ZIP must be "complete", cannot send less than minimal ZIP file
+      return new ByteArrayInputStream(EMPTY_ZIP);
+    }
+    else {
+      long timesZeroByte = length - EMPTY_ZIP.length;
+      return new SequenceInputStream(new ByteArrayInputStream(EMPTY_ZIP), exactLength(new byte[]{0}, timesZeroByte));
+    }
   }
 }

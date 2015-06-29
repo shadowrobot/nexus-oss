@@ -10,7 +10,7 @@
  * of Sonatype, Inc. Apache Maven is a trademark of the Apache Software Foundation. M2eclipse is a trademark of the
  * Eclipse Foundation. All other trademarks are the property of their respective owners.
  */
-package org.sonatype.nexus.testsuite.maven.perf;
+package org.sonatype.nexus.testsuite.maven.chs;
 
 import javax.inject.Inject;
 
@@ -46,7 +46,7 @@ import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
  * Metadata concurrent requests IT.
  */
 @ExamReactorStrategy(PerClass.class)
-public class MavenConcurrentRequestIT
+public abstract class MavenCHSITSupport
     extends MavenITSupport
 {
   @org.ops4j.pax.exam.Configuration
@@ -57,31 +57,31 @@ public class MavenConcurrentRequestIT
     );
   }
 
-  private static final String RELEASE_XML_ARTIFACT_PATH = "group/artifact/1.0/artifact-1.0.xml";
+  protected static final String RELEASE_XML_ARTIFACT_PATH = "group/artifact/1.0/artifact-1.0.xml";
 
-  private static final String RELEASE_ZIP_ARTIFACT_PATH = "group/artifact/1.0/artifact-1.0.zip";
+  protected static final String RELEASE_ZIP_ARTIFACT_PATH = "group/artifact/1.0/artifact-1.0.zip";
 
-  private static final String RELEASE_TXT_ARTIFACT_PATH = "group/artifact/1.0/artifact-1.0.txt";
+  protected static final String RELEASE_TXT_ARTIFACT_PATH = "group/artifact/1.0/artifact-1.0.txt";
 
   @Inject
-  private RepositoryManager repositoryManager;
+  protected RepositoryManager repositoryManager;
 
   @Inject
   private LogManager logManager;
 
-  private PathRecorderBehaviour pathRecorderBehaviour;
+  protected PathRecorderBehaviour pathRecorderBehaviour;
 
-  private GeneratorBehaviour xmlArtifactGenerator;
+  protected GeneratorBehaviour xmlArtifactGenerator;
 
-  private GeneratorBehaviour zipArtifactGenerator;
+  protected GeneratorBehaviour zipArtifactGenerator;
 
-  private GeneratorBehaviour txtArtifactGenerator;
+  protected GeneratorBehaviour txtArtifactGenerator;
 
   private Repository mavenCentral;
 
   private Server upstream;
 
-  private Maven2Client centralClient;
+  protected Maven2Client centralClient;
 
   @Before
   public void setupMavenDebugStorage() {
@@ -126,25 +126,5 @@ public class MavenConcurrentRequestIT
     if (upstream != null) {
       upstream.stop();
     }
-  }
-
-  @Test
-  public void sanity() throws Exception {
-    HttpResponse response;
-
-    // deliver me a 1TB zip file
-    zipArtifactGenerator.setContentProperties(ByteSize.megaBytes(10L), true, DateTime.now(), null);
-
-    response = centralClient.get(RELEASE_XML_ARTIFACT_PATH);
-    EntityUtils.consume(response.getEntity());
-    assertThat(response.getStatusLine().getStatusCode(), equalTo(200));
-
-    response = centralClient.get(RELEASE_ZIP_ARTIFACT_PATH);
-    EntityUtils.consume(response.getEntity());
-    assertThat(response.getStatusLine().getStatusCode(), equalTo(200));
-
-    response = centralClient.get(RELEASE_TXT_ARTIFACT_PATH);
-    EntityUtils.consume(response.getEntity());
-    assertThat(response.getStatusLine().getStatusCode(), equalTo(200));
   }
 }
