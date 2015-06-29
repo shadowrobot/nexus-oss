@@ -33,7 +33,12 @@ public class TextGenerator
   }
 
   @Override
-  public InputStream generate(final int length) {
+  public long getExactContentLength(final long length) {
+    return length;
+  }
+
+  @Override
+  public InputStream generate(final long length) {
     checkArgument(length > 0);
     return exactLength(LOREM_IPSUM.getBytes(Charsets.UTF_8), length);
   }

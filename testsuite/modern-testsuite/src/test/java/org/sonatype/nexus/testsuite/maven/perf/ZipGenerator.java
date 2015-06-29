@@ -37,15 +37,26 @@ public class ZipGenerator
   }
 
   @Override
-  public InputStream generate(final int length) {
+  public long getExactContentLength(final long length) {
+    if (length <= EMPTY_ZIP.length) {
+      return EMPTY_ZIP.length;
+    }
+    else {
+      long timesZeroByte = length - EMPTY_ZIP.length;
+      return EMPTY_ZIP.length + timesZeroByte;
+    }
+  }
+
+  @Override
+  public InputStream generate(final long length) {
     checkArgument(length > 0);
     if (length <= EMPTY_ZIP.length) {
       // ZIP must be "complete", cannot send less than minimal ZIP file
       return new ByteArrayInputStream(EMPTY_ZIP);
     }
     else {
-      int times = length - EMPTY_ZIP.length;
-      return new SequenceInputStream(new ByteArrayInputStream(EMPTY_ZIP), exactLength(new byte[]{0}, times));
+      long timesZeroByte = length - EMPTY_ZIP.length;
+      return new SequenceInputStream(new ByteArrayInputStream(EMPTY_ZIP), exactLength(new byte[]{0}, timesZeroByte));
     }
   }
 }

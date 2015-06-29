@@ -23,7 +23,7 @@ import org.sonatype.sisu.goodies.common.ComponentSupport;
 public abstract class Generator
     extends ComponentSupport
 {
-  protected static InputStream exactLength(final byte[] sample, final int length) {
+  protected static InputStream exactLength(final byte[] sample, final long length) {
     return new InputStream()
     {
       private long pos = 0;
@@ -36,7 +36,7 @@ public abstract class Generator
     };
   }
 
-  protected static InputStream repeat(final byte[] sample, final int times) {
+  protected static InputStream repeat(final byte[] sample, final long times) {
     return new InputStream()
     {
       private long pos = 0;
@@ -57,7 +57,13 @@ public abstract class Generator
   public abstract String getContentType();
 
   /**
+   * Returns the exact byte numbers generated for requested length. Some formats will return the passed in value, but
+   * some, those "record based" for example will return a modified one (aligned with record or segment boundaries).
+   */
+  public abstract long getExactContentLength(long length);
+
+  /**
    * Generates content of given length.
    */
-  public abstract InputStream generate(int length);
+  public abstract InputStream generate(long length);
 }

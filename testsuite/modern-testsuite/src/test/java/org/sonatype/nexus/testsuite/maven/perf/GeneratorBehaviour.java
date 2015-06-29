@@ -41,7 +41,7 @@ public class GeneratorBehaviour
 {
   private final Generator generator;
 
-  private int length;
+  private ByteSize length;
 
   private boolean reportLength;
 
@@ -51,15 +51,16 @@ public class GeneratorBehaviour
 
   public GeneratorBehaviour(final Generator generator) {
     this.generator = checkNotNull(generator);
-    setContentProperties(ByteSize.kiloBytes(1L).toBytesI(), true, DateTime.now(), null);
+    setContentProperties(ByteSize.kiloBytes(1L), true, DateTime.now(), null);
   }
 
-  public void setContentProperties(final int length,
+  public void setContentProperties(final ByteSize length,
                                    final boolean reportLength,
                                    @Nullable final DateTime lastModified,
                                    @Nullable final String etag)
   {
-    checkArgument(length >= 0);
+    checkArgument(length.value() >= 0);
+    this.length = length;
     this.reportLength = reportLength;
     this.lastModified = lastModified;
     this.etag = etag;
@@ -71,19 +72,20 @@ public class GeneratorBehaviour
                          final Map<Object, Object> ctx)
       throws Exception
   {
+    response.setStatus(HttpServletResponse.SC_OK);
     response.setHeader(HttpHeaders.CONTENT_TYPE, generator.getContentType());
     if (lastModified != null) {
       response.setDateHeader(HttpHeaders.LAST_MODIFIED, lastModified.getMillis());
     }
     if (!Strings2.isBlank(etag)) {
-      response.setHeader(HttpHeaders.ETAG, etag);
+      response.setHeader(HttpHeaders.ETAG, "\n" + etag + "\"");
     }
     if (reportLength) {
-      response.setHeader(HttpHeaders.CONTENT_LENGTH, Long.toString(length));
+      response.setHeader(HttpHeaders.CONTENT_LENGTH, Long.toString(generator.getExactContentLength(length.toBytes())));
     }
     try (ServletOutputStream out = response.getOutputStream()) {
-      ByteStreams.copy(generator.generate(length), out);
+      ByteStreams.copy(generator.generate(length.toBytes()), out);
     }
-    return true;
+    return false;
   }
 }

@@ -37,15 +37,27 @@ public class XmlGenerator
   }
 
   @Override
-  public InputStream generate(final int length) {
+  public long getExactContentLength(final long length) {
+    if (length <= XML_PREAMBLE.length() + EMPTY.length()) {
+      return XML_PREAMBLE.length() + "\n".length() + EMPTY.length();
+    }
+    else {
+      long correctedLength = length - XML_PREAMBLE.length();
+      long times = correctedLength / EMPTY.length();
+      return XML_PREAMBLE.length() + (times * EMPTY.length());
+    }
+  }
+
+  @Override
+  public InputStream generate(final long length) {
     checkArgument(length > 0);
     if (length <= XML_PREAMBLE.length() + EMPTY.length()) {
       // XML must be complete
       return new ByteArrayInputStream((XML_PREAMBLE + "\n" + EMPTY).getBytes(Charsets.UTF_8));
     }
     else {
-      int correctedLength = length - XML_PREAMBLE.length();
-      int times = correctedLength / EMPTY.length();
+      long correctedLength = length - XML_PREAMBLE.length();
+      long times = correctedLength / EMPTY.length();
       return new SequenceInputStream(new ByteArrayInputStream(XML_PREAMBLE.getBytes(Charsets.UTF_8)),
           repeat(EMPTY.getBytes(Charsets.UTF_8), times));
     }
