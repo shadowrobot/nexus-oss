@@ -38,6 +38,7 @@ public class ZipGenerator
 
   @Override
   public InputStream generate(final int length) {
+    checkArgument(length > 0);
     if (length <= EMPTY_ZIP.length) {
       // ZIP must be "complete", cannot send less than minimal ZIP file
       return new ByteArrayInputStream(EMPTY_ZIP);

@@ -38,6 +38,7 @@ public class XmlGenerator
 
   @Override
   public InputStream generate(final int length) {
+    checkArgument(length > 0);
     if (length <= XML_PREAMBLE.length() + EMPTY.length()) {
       // XML must be complete
       return new ByteArrayInputStream((XML_PREAMBLE + "\n" + EMPTY).getBytes(Charsets.UTF_8));
