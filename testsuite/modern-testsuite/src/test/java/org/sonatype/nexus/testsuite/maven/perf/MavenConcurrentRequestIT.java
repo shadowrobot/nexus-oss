@@ -31,13 +31,16 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.ops4j.pax.exam.Option;
+import org.ops4j.pax.exam.options.WrappedUrlProvisionOption.OverwriteMode;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
 import org.ops4j.pax.exam.spi.reactors.PerClass;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.ops4j.pax.exam.CoreOptions.maven;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
+import static org.ops4j.pax.exam.CoreOptions.wrappedBundle;
 
 /**
  * Metadata concurrent requests IT.
@@ -49,7 +52,10 @@ public class MavenConcurrentRequestIT
   @org.ops4j.pax.exam.Configuration
   public static Option[] configureNexus() {
     return options(nexusDistribution("org.sonatype.nexus.assemblies", "nexus-base-template"),
-        mavenBundle("org.sonatype.http-testing-harness", "server-provider").versionAsInProject()
+        mavenBundle("org.sonatype.http-testing-harness", "server-provider").versionAsInProject(),
+        mavenBundle("com.google.guava", "guava").versionAsInProject(),
+        mavenBundle("org.sonatype.sisu.goodies", "goodies-common").versionAsInProject(),
+        wrappedBundle(maven("org.sonatype.gossip", "gossip-bootstrap").versionAsInProject())
     );
   }
 
@@ -82,7 +88,6 @@ public class MavenConcurrentRequestIT
     logManager.setLoggerLevel("org.sonatype.nexus.repository.storage", LoggerLevel.DEBUG);
   }
 
-  @Before
   public void prepare() throws Exception {
     xmlArtifactGenerator = new GeneratorBehaviour(new XmlGenerator());
     zipArtifactGenerator = new GeneratorBehaviour(new ZipGenerator());
@@ -120,6 +125,7 @@ public class MavenConcurrentRequestIT
 
   @Test
   public void sanity() throws Exception {
+    prepare();
     HttpResponse response;
 
     response = centralClient.get(RELEASE_XML_ARTIFACT_PATH);
