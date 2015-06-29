@@ -12,31 +12,15 @@
  */
 package org.sonatype.nexus.transaction;
 
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
+import java.util.concurrent.Callable;
 
 /**
- * Opens a transaction when entering a transactional method and closes it on exit.
- * Nested transactional methods proceed as normal inside the current transaction.
- *
+ * Represents a {@link Callable} with a more specific throws clause.
+ * 
  * @since 3.0
  */
-final class TransactionInterceptor
-    implements MethodInterceptor
+public interface Operation<T, E extends Exception>
+    extends Callable<T>
 {
-  public Object invoke(final MethodInvocation mi) throws Throwable {
-    final UnitOfWork work = UnitOfWork.self();
-
-    if (work.isActive()) {
-      return mi.proceed();
-    }
-
-    try (final Transaction tx = work.acquireTransaction()) {
-      final Transactional spec = mi.getMethod().getAnnotation(Transactional.class);
-      return new TransactionalWrapper(spec, mi).proceedWithTransaction(tx);
-    }
-    finally {
-      work.releaseTransaction();
-    }
-  }
+  T call() throws E;
 }
