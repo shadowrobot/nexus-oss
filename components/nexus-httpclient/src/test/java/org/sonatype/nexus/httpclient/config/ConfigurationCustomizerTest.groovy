@@ -66,11 +66,11 @@ class ConfigurationCustomizerTest
 
   @Test
   void 'custom nonProxyHosts'() {
-    NexusHttpRoutePlanner planner = create(['*.sonatype.*', '*.example.com', 'localhost'] as String[])
+    NexusHttpRoutePlanner planner = create(['*.sonatype.*', '*.example.com', 'localhost', '10.*', '[:*', '*:8]'] as String[])
     HttpRoute route
 
     // must not have proxy used
-    for (String host : ['www.sonatype.org', 'www.sonatype.com', 'smtp.example.com', 'localhost']) {
+    for (String host : ['www.sonatype.org', 'www.sonatype.com', 'smtp.example.com', 'localhost', '10.0.0.1', '[::8]', '[::9]']) {
       HttpHost target = new HttpHost(host, 80)
       route = planner.determineRoute(target, mock(HttpRequest), mock(HttpContext))
       assertThat(route.getHopTarget(0), equalTo(target))
@@ -88,6 +88,42 @@ class ConfigurationCustomizerTest
       HttpHost target = new HttpHost(host, 8443, HTTPS)
       route = planner.determineRoute(target, mock(HttpRequest), mock(HttpContext))
       assertThat(route.getHopTarget(0), equalTo(httpsProxyHost))
+    }
+  }
+
+  @Test
+  void 'ipv6 nonProxyHosts'() {
+    NexusHttpRoutePlanner planner
+    HttpRoute route
+
+    planner = create(['*:8]'] as String[])
+    // must not have proxy used
+    for (String host : ['[::8]']) {
+      HttpHost target = new HttpHost(host, 80)
+      route = planner.determineRoute(target, mock(HttpRequest), mock(HttpContext))
+      assertThat(route.getHopTarget(0), equalTo(target))
+    }
+
+    // must have HTTP proxy used
+    for (String host : ['[::9]']) {
+      HttpHost target = new HttpHost(host, 80, HTTP)
+      route = planner.determineRoute(target, mock(HttpRequest), mock(HttpContext))
+      assertThat(route.getHopTarget(0), equalTo(httpProxyHost))
+    }
+
+    planner = create(['[:*'] as String[])
+    // must not have proxy used
+    for (String host : ['[::8]', '[::9]']) {
+      HttpHost target = new HttpHost(host, 80)
+      route = planner.determineRoute(target, mock(HttpRequest), mock(HttpContext))
+      assertThat(route.getHopTarget(0), equalTo(target))
+    }
+
+    // must have HTTP proxy used
+    for (String host : ['sonatype.org', '1.2.3.4']) {
+      HttpHost target = new HttpHost(host, 80, HTTP)
+      route = planner.determineRoute(target, mock(HttpRequest), mock(HttpContext))
+      assertThat(route.getHopTarget(0), equalTo(httpProxyHost))
     }
   }
 }

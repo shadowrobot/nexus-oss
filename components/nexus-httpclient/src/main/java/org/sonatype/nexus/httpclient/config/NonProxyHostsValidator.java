@@ -19,9 +19,6 @@ import javax.validation.ConstraintValidatorContext;
 import org.sonatype.nexus.common.text.Strings2;
 import org.sonatype.nexus.validation.ConstraintValidatorSupport;
 
-import com.google.common.net.InetAddresses;
-import com.google.common.net.InternetDomainName;
-
 /**
  * {@link NonProxyHosts} validator.
  *
@@ -31,9 +28,20 @@ public class NonProxyHostsValidator
     extends ConstraintValidatorSupport<NonProxyHosts, String[]>
 {
   /**
-   * Wildcard in a nonProxyHost element may be only on it's beginning or end, nowhere else.
+   * Pattern checking for allowed characters, best we can do, as input may be:
+   * <ul>
+   * <li>hostname w/o or w/ wildcard (incomplete)</li>
+   * <li>IPv4 address w/o or w/ wildcard (incomplete)</li>
+   * <li>IPv6 non-compressed address w/o or w/ wildcard (incomplete)</li>
+   * <li>IPv6 compressed address w/o or w/ wildcard (incomplete)</li>
+   * </ul>
+   * Due to the "incomplete" case (hostname may be missing domain, IPv4 might have one, two, three or four segments,
+   * IPv6 might have three or more segments) the validation we perform here is basically just enforcing allowed
+   * characters, and simply not treating these as hostname or IP address, but merely as an opaque pattern.
+   * If wildcard present, wildcard in a nonProxyHost element may be only on it's beginning or end, nowhere else.
    */
-  private static final Pattern WILDCARD_PATTERN = Pattern.compile("\\*?[^*]+\\*?");
+  private static final Pattern CONTENT_PATTERN = Pattern
+      .compile("\\*?[\\p{IsAlphabetic}|\\d|\\-|\\_|\\.|\\:|\\[|\\]]+\\*?");
 
   @Override
   public boolean isValid(final String[] values, final ConstraintValidatorContext context) {
@@ -49,7 +57,7 @@ public class NonProxyHostsValidator
    * Returns {@code true} if value is considered as valid nonProxyHosts expression. This is NOT validating the
    * single-string used to set system property (where expressions are delimited with "|")!
    */
-  private boolean isValid(final String value) {
+  private boolean isValid(String value) {
     // A value should be a non-empty string optionally prefixed or suffixed with an asterisk
     // must be non-empty, non-blank
     if (Strings2.isBlank(value)) {
@@ -60,24 +68,6 @@ public class NonProxyHostsValidator
       return false;
     }
     // asterisk '*' can be only on beginning or end
-    // FIXME: IPv6 with wildcard: seems to not work, as sun.misc.RegexpPool does only prefix/suffix matching, does not accounts for "[" or "]"!?
-    if (value.indexOf('*') > -1) {
-      if (!WILDCARD_PATTERN.matcher(value).matches()) {
-        return false;
-      }
-    }
-    // is it IP4/IP6 maybe? IP6 surrounded with "[]" must have brackets removed
-    String val = value;
-    if (val.startsWith("[") && val.endsWith("]")) {
-      val = val.substring(1, val.length() - 1);
-    }
-    if (InetAddresses.isInetAddress(val.replaceAll("\\*", "1"))) {
-      return true;
-    }
-    // is it internet domain name
-    if (InternetDomainName.isValid(value.replaceAll("\\*", "foo"))) {
-      return true;
-    }
-    return false;
+    return CONTENT_PATTERN.matcher(value).matches();
   }
 }
