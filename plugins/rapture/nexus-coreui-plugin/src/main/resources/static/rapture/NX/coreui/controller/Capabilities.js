@@ -172,7 +172,7 @@ Ext.define('NX.coreui.controller.Capabilities', {
         capabilityTypeModel;
 
     if (Ext.isDefined(model)) {
-      me.getFeature().setItemClass(1, NX.Icons.cls('capability-' + model.get('state'), 'x16'));
+      me.setItemClass(1, NX.Icons.cls('capability-' + model.get('state'), 'x16'));
 
       capabilityTypeModel = me.getStore('CapabilityType').getById(model.get('typeId'));
 
@@ -190,13 +190,13 @@ Ext.define('NX.coreui.controller.Capabilities', {
    * @param {NX.coreui.model.Capability} model capability model
    */
   eventuallyShowWarning: function(model) {
-    var drilldown = this.getList().up('nx-drilldown');
+    var me = this;
 
     if (model.get('enabled') && !model.get('active')) {
-      drilldown.showWarning(model.get('stateDescription'));
+      me.showWarning(model.get('stateDescription'));
     }
     else {
-      drilldown.clearWarning();
+      me.clearWarning();
     }
   },
 
