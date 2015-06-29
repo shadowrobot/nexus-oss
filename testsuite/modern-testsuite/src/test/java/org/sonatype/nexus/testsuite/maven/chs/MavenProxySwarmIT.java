@@ -26,6 +26,7 @@ import org.sonatype.sisu.goodies.common.ByteSize;
 import com.google.common.collect.Maps;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
+import org.hamcrest.Matchers;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
@@ -33,6 +34,7 @@ import org.ops4j.pax.exam.spi.reactors.PerClass;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
 
 /**
@@ -53,8 +55,8 @@ public class MavenProxySwarmIT
 
     performSwarm();
 
-    // we are aware that without locking, all the swarm members would cause it's "own" fetch from remote
-    assertThat(pathRecorderBehaviour.getPathsForVerb(HttpMethods.GET), hasSize(CLIENTS));
+    // we are aware that without locking, many of the the swarm members (if not all) would cause it's "own" fetch from remote
+    assertThat(pathRecorderBehaviour.getPathsForVerb(HttpMethods.GET), hasSize(greaterThan(2)));
     pathRecorderBehaviour.clear();
 
     performSwarm();
