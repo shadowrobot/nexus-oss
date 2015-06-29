@@ -21,12 +21,15 @@ import org.sonatype.nexus.repository.config.Configuration;
 import org.sonatype.nexus.repository.manager.RepositoryManager;
 import org.sonatype.nexus.testsuite.maven.Maven2Client;
 import org.sonatype.nexus.testsuite.maven.MavenITSupport;
+import org.sonatype.sisu.goodies.common.ByteSize;
 import org.sonatype.tests.http.server.fluent.Server;
+import org.sonatype.tests.http.server.jetty.behaviour.PathRecorderBehaviour;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -60,17 +63,19 @@ public class MavenConcurrentRequestIT
 
   private static final String RELEASE_TXT_ARTIFACT_PATH = "group/artifact/1.0/artifact-1.0.txt";
 
-  private GeneratorBehaviour xmlArtifactGenerator;
-
-  private GeneratorBehaviour zipArtifactGenerator;
-
-  private GeneratorBehaviour txtArtifactGenerator;
-
   @Inject
   private RepositoryManager repositoryManager;
 
   @Inject
   private LogManager logManager;
+
+  private PathRecorderBehaviour pathRecorderBehaviour;
+
+  private GeneratorBehaviour xmlArtifactGenerator;
+
+  private GeneratorBehaviour zipArtifactGenerator;
+
+  private GeneratorBehaviour txtArtifactGenerator;
 
   private Repository mavenCentral;
 
@@ -85,18 +90,22 @@ public class MavenConcurrentRequestIT
 
   @Before
   public void prepare() throws Exception {
+    pathRecorderBehaviour = new PathRecorderBehaviour();
     xmlArtifactGenerator = new GeneratorBehaviour(new XmlGenerator());
     zipArtifactGenerator = new GeneratorBehaviour(new ZipGenerator());
     txtArtifactGenerator = new GeneratorBehaviour(new TextGenerator());
 
     upstream = Server.withPort(0)
         .serve("/" + RELEASE_XML_ARTIFACT_PATH).withBehaviours(
+            pathRecorderBehaviour,
             xmlArtifactGenerator
         )
         .serve("/" + RELEASE_ZIP_ARTIFACT_PATH).withBehaviours(
+            pathRecorderBehaviour,
             zipArtifactGenerator
         )
         .serve("/" + RELEASE_TXT_ARTIFACT_PATH).withBehaviours(
+            pathRecorderBehaviour,
             txtArtifactGenerator
         )
         .start();
@@ -122,6 +131,9 @@ public class MavenConcurrentRequestIT
   @Test
   public void sanity() throws Exception {
     HttpResponse response;
+
+    // deliver me a 1TB zip file
+    zipArtifactGenerator.setContentProperties(ByteSize.megaBytes(10L), true, DateTime.now(), null);
 
     response = centralClient.get(RELEASE_XML_ARTIFACT_PATH);
     EntityUtils.consume(response.getEntity());
