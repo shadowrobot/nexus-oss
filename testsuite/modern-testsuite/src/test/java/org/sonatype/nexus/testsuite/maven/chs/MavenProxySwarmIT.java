@@ -26,7 +26,6 @@ import org.sonatype.sisu.goodies.common.ByteSize;
 import com.google.common.collect.Maps;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
-import org.hamcrest.Matchers;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
@@ -42,7 +41,7 @@ import static org.hamcrest.Matchers.hasSize;
  */
 @ExamReactorStrategy(PerClass.class)
 public class MavenProxySwarmIT
-    extends MavenCHSITSupport
+    extends MavenHotspotITSupport
 {
   private static final int CLIENTS = 5;
 
@@ -106,7 +105,7 @@ public class MavenProxySwarmIT
     public HttpResponse call() throws Exception {
       startLatch.await();
       try {
-        HttpResponse response = centralClient.get(uri);
+        HttpResponse response = repositoryClient.get(uri);
         EntityUtils.consume(response.getEntity());
         return response;
       }

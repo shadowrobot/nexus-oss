@@ -19,34 +19,28 @@ import org.sonatype.nexus.log.LoggerLevel;
 import org.sonatype.nexus.repository.Repository;
 import org.sonatype.nexus.repository.config.Configuration;
 import org.sonatype.nexus.repository.manager.RepositoryManager;
+import org.sonatype.nexus.repository.maven.policy.VersionPolicy;
 import org.sonatype.nexus.testsuite.maven.Maven2Client;
 import org.sonatype.nexus.testsuite.maven.MavenITSupport;
-import org.sonatype.sisu.goodies.common.ByteSize;
 import org.sonatype.tests.http.server.fluent.Server;
 import org.sonatype.tests.http.server.jetty.behaviour.PathRecorderBehaviour;
 
-import org.apache.http.HttpResponse;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
-import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Test;
+import org.junit.Rule;
+import org.junit.rules.TestName;
 import org.ops4j.pax.exam.Option;
-import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
-import org.ops4j.pax.exam.spi.reactors.PerClass;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
 /**
- * Metadata concurrent requests IT.
+ * Maven Concurrency Hotspot IT support.
  */
-@ExamReactorStrategy(PerClass.class)
-public abstract class MavenCHSITSupport
+public abstract class MavenHotspotITSupport
     extends MavenITSupport
 {
   @org.ops4j.pax.exam.Configuration
@@ -63,6 +57,9 @@ public abstract class MavenCHSITSupport
 
   protected static final String RELEASE_TXT_ARTIFACT_PATH = "group/artifact/1.0/artifact-1.0.txt";
 
+  @Rule
+  public TestName testName = new TestName();
+
   @Inject
   protected RepositoryManager repositoryManager;
 
@@ -77,11 +74,11 @@ public abstract class MavenCHSITSupport
 
   protected GeneratorBehaviour txtArtifactGenerator;
 
-  private Repository mavenCentral;
+  private Repository repository;
 
   private Server upstream;
 
-  protected Maven2Client centralClient;
+  protected Maven2Client repositoryClient;
 
   @Before
   public void setupMavenDebugStorage() {
@@ -110,13 +107,13 @@ public abstract class MavenCHSITSupport
         )
         .start();
 
-    Repository repo = repositoryManager.get("maven-central");
-    assertThat(repo, notNullValue());
-    Configuration mavenCentralConfiguration = repo.getConfiguration();
-    mavenCentralConfiguration.attributes("proxy").set("remoteUrl", "http://localhost:" + upstream.getPort() + "/");
-    mavenCentral = repositoryManager.update(mavenCentralConfiguration);
-    centralClient = new Maven2Client(HttpClients.custom().build(), HttpClientContext.create(),
-        resolveUrl(nexusUrl, "/repository/" + mavenCentral.getName() + "/").toURI());
+    final Configuration configuration = proxyConfig(testName.getMethodName(),
+        "http://localhost:" + upstream.getPort() + "/", VersionPolicy.RELEASE);
+    repository = repositoryManager.create(configuration);
+    assertThat(repository, notNullValue());
+
+    repositoryClient = new Maven2Client(HttpClients.custom().build(), HttpClientContext.create(),
+        resolveUrl(nexusUrl, "/repository/" + repository.getName() + "/").toURI());
   }
 
   @After

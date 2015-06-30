@@ -19,16 +19,25 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 
+import com.sonatype.nexus.repository.nuget.internal.proxy.NugetProxyRecipe;
+
+import org.sonatype.nexus.blobstore.api.BlobStoreManager;
+import org.sonatype.nexus.common.collect.NestedAttributesMap;
 import org.sonatype.nexus.common.hash.HashAlgorithm;
 import org.sonatype.nexus.common.io.DirSupport;
 import org.sonatype.nexus.log.LogManager;
 import org.sonatype.nexus.log.LoggerLevel;
 import org.sonatype.nexus.repository.Repository;
+import org.sonatype.nexus.repository.config.Configuration;
 import org.sonatype.nexus.repository.maven.MavenFacet;
 import org.sonatype.nexus.repository.maven.MavenPath;
 import org.sonatype.nexus.repository.maven.MavenPath.HashType;
+import org.sonatype.nexus.repository.maven.internal.maven2.Maven2ProxyRecipe;
+import org.sonatype.nexus.repository.maven.policy.VersionPolicy;
+import org.sonatype.nexus.repository.storage.WritePolicy;
 import org.sonatype.nexus.repository.util.TypeTokens;
 import org.sonatype.nexus.repository.view.Content;
 import org.sonatype.nexus.repository.view.Payload;
@@ -42,7 +51,6 @@ import org.apache.maven.artifact.repository.metadata.Metadata;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Reader;
 import org.apache.maven.it.Verifier;
 import org.junit.Before;
-import org.ops4j.pax.exam.Configuration;
 import org.ops4j.pax.exam.Option;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -62,7 +70,7 @@ public abstract class MavenITSupport
 
   private final MetadataXpp3Reader reader = new MetadataXpp3Reader();
 
-  @Configuration
+  @org.ops4j.pax.exam.Configuration
   public static Option[] configureNexus() {
     return options(nexusDistribution("org.sonatype.nexus.assemblies", "nexus-base-template"),
         wrappedBundle(maven("org.apache.maven.shared", "maven-verifier").versionAsInProject()),
@@ -128,6 +136,27 @@ public abstract class MavenITSupport
     try (InputStream is = content.openInputStream()) {
       return reader.read(is);
     }
+  }
+
+  @Nonnull
+  protected Configuration proxyConfig(final String name, final String remoteUrl, final VersionPolicy versionPolicy) {
+    final Configuration config = new Configuration();
+    config.setRepositoryName(name);
+    config.setRecipeName(Maven2ProxyRecipe.NAME);
+    config.setOnline(true);
+
+    final NestedAttributesMap maven = config.attributes("maven");
+    maven.set("versionPolicy", versionPolicy.name());
+
+    final NestedAttributesMap proxy = config.attributes("proxy");
+    proxy.set("remoteUrl", remoteUrl);
+    proxy.set("artifactMaxAge", 5);
+
+    NestedAttributesMap storage = config.attributes("storage");
+    storage.set("blobStoreName", BlobStoreManager.DEFAULT_BLOBSTORE_NAME);
+    storage.set("writePolicy", WritePolicy.ALLOW.name());
+
+    return config;
   }
 
   protected void verifyHashesExistAndCorrect(final Repository repository, final String path) throws Exception {
